@@ -1,0 +1,1323 @@
+MQTT topics
+===========
+
+Copyright (C) 2021 Linzhi Ltd.
+
+This document is licensed under the Creative Commons Attribution 4.0
+International (CC BY 4.0) license.
+
+A copy of the license can be found at creativecommons.org/licenses/by/4.0/
+or in the file cc-by-legalcode.txt
+
+
+/sys - General system information and control
+---------------------------------------------
+
+/sys/uptime
+	Two space-separated integer or floating-point numbers: first the
+	miner's uptime in seconds, second, the update interval for the
+	uptime.
+
+	Writer: uptimed
+	Reader: browser
+	QoS:	0 (best-effort)
+	Retain: no
+
+/sys/shutdown
+	1 if we are about to reboot. Any daemon that writes to persistent
+	storage (e.g., the memory card) must immediately cease writing
+	when it receives a shutdown notification. Furthermore, any demon
+	that holds open files on persistent storage should close them.
+
+	Furthermore, any "unsafe" settings (e.g., low fan speed), should
+	be replaced by "safe" settings if a shutdown is imminent.
+
+	A shutdown can be cancelled by sending a 0.
+
+	Writer: fwupdated
+	Reader: dagd
+	QoS:	1 (at least once)
+	Retain: no
+
+/sys/highlight
+	1 to enable highlighting of the miner, 0 to disable it. While a
+	miner is highlighted, the LED blinks blue.
+
+	Writer:	browser
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/clear-shutdown
+	Write anything to clear all pending power, thermal, or I2C shutdowns.
+	This also clears card (uSD) warnings and boot problem warnings.
+
+	Writer:	browser, coord
+	Reader:	browser, coord, crewd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/sys/recovery-mode
+	1 if we have booted in recovery mode, 0 otherwise. Recovery mode
+	prevents retrieving user-settable configuration variables at boot
+	time.
+	
+	Writer: boot process
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/led/rgb
+	RGB LED control. A string that may contain any of the letters
+	R, G, and B. If a letter is present, rgbd lights the corresponding
+	channel. All other characters are ignored. A message without R, G,
+	or B turns off the RGB LED.
+
+	The color can optionally be followed by two decimal numbers, which
+	indicate the number of milliseconds the LED shows the color, and the
+	number of milliseconds the LED will be dark afterwards. Then the cycle
+	repeats.
+
+	If no on-off times are given or if the off-time is zero, the LED is
+	lit constantly.
+
+	Writer:	TBD
+	Reader:	rgbd
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/led/ether
+	Enable Ethernet PHY LEDs. If enabled (1), the LEDs on the RJ-45
+	connector are controlled by the PHY. If disabled (0), they are
+	turned off.
+
+	Writer:	TBD
+	Reader:	rgbd
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/led/dark-mode
+	The time until dark mode is activated. Writing the number of seconds
+	(a decimal integer) sets the timeout. 0 disables dark mode. Each
+	write to /sys/led/dark-mode resets the timeout, i.e., the LEDs are
+	turned on.
+
+	Write:	boot process
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/button/user
+	USER button status. 0 if the button is not being pressed, 1 if is.
+
+	Writer:	buttond
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain: no (?)
+
+/sys/strap
+	Strapping pin state, as hex number with preceding 0x.
+	If a resistor is populated, the corresponding bit reads as 0,
+	if not populated, it reads as 1.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/dna
+	57-bit DNA value, as 15-digit hex number with leading zeroes.
+	The DNA is an almost-unique ID for the Zynq.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/pl-git
+	The first 32 bits of the git commit hash at which PL was built,
+	as 8-digit hex number with leading zeroes.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/pl-t
+	32 bits Unix timestamp (seconds since 1970-01-01 00:00:00 UTC) of
+	the time at which PL was built, as decimal number.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain: yes
+
+/sys/name
+	User-assigned device name. This topic only exists if a name has
+	actually been assigned.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/name0
+/sys/name1
+	User-assigned names of the boards in slots 0 and 1. These topics
+	only exist if a board is present in the respective slot and a
+	name has been assigned.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/serial
+	Factory-assigned serial number.
+
+	Writer:	boot process
+	Reader:	TBD (browser)
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/serial0
+/sys/serial1
+	Factory-assigned serial numbers of the boards in slots 0 and 1. These
+	topics only exist if a board is present in the respective slot.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/ignore0
+/sys/ignore1
+	1 if the board is set to "ignore" (no mining is attempted), 0 if the
+	board is available for mining.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/i2c/BUS/reset
+	The reset count of the respective I2C bus. This message consists of
+	the following three numbers, separated by spaces:
+	- the reset count (counting up from one), in the current session, or
+	  0 if the retry count was exhausted and the operation is still
+	  failing.
+	- the I2C address of the device we tried to access.
+	- the system uptime when the message was sent, in seconds.
+
+	Note that this message can indicate both an event and a final status.
+	The reader should examine whether it was sent a retained message to
+	distinguish the two cases.
+
+	Writer:	liblzi2c
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/i2c/warning
+	If a critical I2C device (temperature sensor or configuration EEPROM)
+	cannot be accessed, /sys/i2c/warning contains the uptime (in seconds)
+	when the latest warning was received. 0 if no I2C warning is pending.
+
+        /sys/i2c/warning does not auto-clear. Run "i2c-troubled clear".
+
+	Writer:	i2c-troubled
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/i2c/shutdown
+	Like /sys/i2c/warning, but the number of failed I2C devices is
+	excessive.
+
+        /sys/i2c/shutdown does not auto-clear. Run "i2c-troubled clear".
+
+	Writer:	i2c-troubled
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/ether/reset
+	If Ethernet stalled and was subsequently reset, the system time in
+	seconds since the Unix epoch, followed by the most recent kernel
+	messages are written to /sys/ether/reset.
+
+	Writer:	card-troubled
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/boot/problem
+	Contains messages if boot problems where detected, empty if there
+	were no problems.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/banner
+	If set, defines a text that should be shown prominently in user
+	interfaces, e.g., it is shown in the top status bar of the Web UI.
+
+	This text is the concatenation of the BANNER variables (if set) of
+	the controller and slot configurations. If multiple BANNER variables
+	are set, newlines are added between them.
+
+	The banner is intended for "labeling" machines, e.g., if they have a
+	special role or condition.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/power - Power management and monitoring
+----------------------------------------
+
+/power/${SLOT}/${CHANNEL}/control/set/${KEY}
+	Set value interface for isl68127 DCDC power.
+	${SLOT}:    char of '0' or '1' select the ECB slot.
+	${CHANNEL}: char of 'A' or 'J' select the power channel.
+	${KEY}:     run `isl68127 --slot='0' set` to get detailed information
+	            about which KEY can use.
+	example:    /power/0/B/control/set/VOUT_COMMAND
+	            Payload is the ascii text value to set, both
+				"1800" and "0x708" are good.
+	Writer:	browser
+	Reader:	isl68127
+	QoS:	0 (at most once)
+	Retain:	no
+
+/power/${SLOT}/${CHANNEL}/control/get/${KEY}
+	Query value interface for isl68127 DCDC power.
+	${SLOT}:    char of '0' or '1' select the ECB slot.
+	${CHANNEL}: char of 'A' or 'J' select the power channel.
+	${KEY}:     run `isl68127 --slot='0' get` to get detailed information
+	            about which KEY can use.
+	example:    /power/0/B/control/get/VOUT_COMMAND
+				Payload length is 0
+				The result will published to
+				/power/0/B/status/VOUT_COMMAND
+	Writer:	browser
+	Reader:	isl68127
+	QoS:	0 (at most once)
+	Retain:	no
+
+/power/${SLOT}/${CHANNEL}/status/${KEY}
+	Get value interface for isl68127 DCDC power.
+	${SLOT}:    char of '0' or '1' select the ECB slot.
+	${CHANNEL}: char of 'A' or 'J' select the power channel.
+	${KEY}:     run `isl68127 --slot='0' get` to get detailed information
+	            about which KEY can use.
+	example:    /power/0/B/status/VOUT_COMMAND
+	            Payload is the ascii text decimal, e.g. "1800"
+				It could be `undefined` if error occurred
+	Writer:	isl68127
+	Reader:	browser
+	QoS:	0 (at most once)
+	Retain:	no
+
+/power/${SLOT}/control/set/SWITCH
+	Set ON/OFF for isl68127 DCDC power.
+	${SLOT}:    char of '0' or '1' select the ECB slot.
+	example:    /power/0/control/set/SWITCH
+	            Payload is the ascii text value to set, both
+				"0" and "0x0" are good.
+				Value must be "0" or "1"
+				0 : OFF
+				1 : ON
+	Writer:	browser
+	Reader:	isl68127
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/power/${SLOT}/status/SWITCH
+	Get ON/OFF status for isl68127 DCDC power.
+	${SLOT}:    char of '0' or '1' select the ECB slot.
+	example:    /power/0/B/status/VOUT_COMMAND
+	            Payload is the ascii text decimal, e.g. "0" or "1"
+				It could be `undefined` if error occurred
+				0 :         OFF
+				1 :         ON
+				undefined : ERROR
+	Writer:	isl68127
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/power/shutdown
+	If the voltage regulators report an alert condition, /power/shutdown
+	contains the uptime (in seconds) when the latest shutdown was
+	initiated. 0 if no power supply shutdown has occurred.
+
+        /power/shutdown does not auto-clear. Run "pshut clear".
+
+	Writer:	nomelt (via az5, pshut)
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/power/dump
+	Register dump from from the ISL68127 regulators, taken in the process
+	of a power supply shutdown (before commanding the system-wide
+	shutdown).
+
+	Writer:	nomelt (via az5, pshut)
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/power/poll
+	Explicitly poll /power/+/+/control/get/+
+	We can have a daemon perform automatic polling, or leave it to the
+	user to request updates. In the latter case, the full set of the
+	most relevant parameters can be obtained by writing anything to
+	/power/poll. (Requesting individual values through .../get/+ is
+	also possible.)
+
+	Writer:	browser
+	Reader:	pwrpolld
+	QoS:	0 (at most once)
+	Retain:	no
+
+
+/fan - Fan control and monitoring
+---------------------------------
+
+/fan/left/pwm-set
+/fan/right/pwm-set
+/fan/front/pwm-set
+/fan/rear/pwm-set
+	PWM control of left/right fan. (Note: these are the LC001.02 fans
+	names. On LC001.01, "right" would be the "front" fan. On LC001.05
+	the names changed again, and we have PWM for front and rear fans.)
+
+	The value is the PWM duty cycle in percent, an integer from 0 (fan
+	stopped) to 100 (fan running at maximum speed). Non-zero values
+	below 30% are treated as 30%, to meet the maximum minimum PWM
+	duty cycle at which the fan is required to start and keep spinning.
+
+	Writer:	TBD
+	Reader:	fand
+	QoS:	1 (at least once)
+	Retain:	no
+
+/fan/all/pwm-set (experimental)
+	Set all fans to the specified duty cycle. PWM minima are applied to
+	each fan individually. If both "all" and per-fan settings are used,
+	the latest change applies (i.e., "all" and per-fan have the same
+	priority.)
+
+	Writer:	coord
+	Reader:	fand
+	QoS:	1 (at least once)
+	Retain:	no
+	
+/fan/left/pwm-min
+/fan/right/pwm-min
+/fan/front/pwm-min
+/fan/rear/pwm-min
+	Minimum non-zero PWM value. Any non-zero value below this will be
+	interpreted as if it was pwm-min. This defaults to 30.
+
+	Writer:	fand
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/fan/left/pwm
+/fan/right/pwm
+/fan/front/pwm
+/fan/rear/pwm
+	PWM value currently in use.
+
+	Writer:	fand
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/fan/left/rpm
+/fan/right/rpm
+/fan/front/1/rpm
+/fan/front/2/rpm
+/fan/rear/1/rpm
+/fan/rear/2/rpm
+	Measured speed of the fans, in revolutions per minute. This value
+	is an integer (accuracy is relatively low) and gets updated
+	periodically.
+
+	Writer:	fand
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	no
+
+/fan/profile (experimental)
+	Fan speed regulation profile. This is a space-separated list of
+	temperature:duty-cycle pairs. Temperatures are in degree celsius,
+	duty cycles are in percent. All numbers are integers.
+
+	The first entry specifies the minimum duty cycle and also applies to
+	all lower temperatures. The last entry specifies the temperature at
+	which a 100% duty cycle is selected and the duty cycle value in the
+	entry is ignored.
+
+	Temperatures most increase strictly monotonously. Duty cycle values
+	must increase monotonously. Incorrect entries are ignored.
+
+	Default: 0:100
+
+	Writer:	boot process, browser
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/fw - Firmware version and updates
+----------------------------------
+
+/fw/build-version
+	Firmware build version (git commit and "dirty" indication).
+
+	Writer: boot process
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: yes
+
+/fw/build-date
+	Firmware build date, as seconds since the Unix epoch.
+
+	Writer: boot process
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: yes
+
+/fw/update
+	Firmware image upload.
+
+	The firmware is an uncompressed TAR archive containing the following
+	files (without directories):
+
+	  MANIFEST		Description of content (see README.fw)
+	  uImage		Linux kernel image
+	  zynq-*.dtb		board-specific device tree binary
+	  rootfs.cpio.gz	rootfs image
+
+	If the "magic" string "reboot" (no newline or other whitespace) is
+	published as /fw/update, we reboot without changing the firmware.
+
+	Writer: browser
+	Reader: fwupdated
+	QoS:	2 (exactly once)
+	Retain: no
+
+/fw/update-status
+	Firmware update status.
+
+	Writer: fwupdated
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: no
+
+/fw/update-signee
+	Signee whose signature has been accepted for the firmware being
+	installed.
+
+	Writer: fwupdated
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: no
+
+
+/card - Memmory card
+--------------------
+
+/card/cid
+	CID of the uSD card. 16-byte hex string (with leading zeroes).
+
+	Writer:	TBD (currently boot/init)
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/card/detect
+	Detection of whether an uSD card is present: 1 if yes, 0 if there is
+	no card. If the board does not support card detection, /card/detect
+	is always 1.
+
+	Writer:	buttond
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/card/warning
+	If an IO error has been reported by the uSD card, /card/warning
+	contains the update (in seconds) of the latest error. 0 if no error
+	has been reported.
+
+	/card/warning does not auto-clear. Run "card-troubled clear" or
+	write "0" to /card/warning.
+
+	Writer:	card-troubled
+	Reader:	browser, crewd
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+
+/temp - Temperature monitoring and thermal alerts
+-------------------------------------------------
+
+/temp/0/current
+/temp/1/current
+	Current temperature of all dies on the hash board in slot 0 or 1.
+	This is a space-separated list of temperatures in degrees Celsius.
+	Chips or sensors that are absent are shown as the corresponding
+	number of "-".
+
+	The list is ordered by sensor chip in ascending I2C address order,
+	and then for each chip channels 1 to 8.
+
+	Writer:	tmond
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	no
+
+/temp/limit
+	Temperature limit at which an automatic shutdown is initiated.
+	Changing this value has no effect - the limit is set by "nomelt"
+	and cannot be changed at run time.
+
+	Writer:	nomelt
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/0/warn
+/temp/1/warn
+	Temperature limit at which a thermal warning is indicated. This value
+	can be changed through the TWARN configuration variable of the
+	respective board.
+	
+	Writer:	nomelt
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/shutdown
+	If a thermal shutdown has occurred, contains the uptime (in seconds)
+	when the latest shutdown was initiated. 0 if no thermal shutdown has
+	occurred.
+
+	/temp/shutdown does not auto-clear. Run "tshut clear".
+
+	Writer:	nomelt (via az5, etc.), TBD
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/warning
+	1 if a temperature warning is being issued. 0 if there is no
+	temperature warning. /temp/warning automatically returns to zero
+	when the temperature drops below the warning threshold.
+
+	Writer:	nomelt (via az5, etc.)
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/config - Configuration management (old-style)
+----------------------------------------------
+
+/config/factory
+	The factory-set configuration, as one single text string.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/factory0
+/config/factory1
+	The factory-set configuration of the respective hashboard (if
+	present), as one single text string.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/user
+	The user-settable configuration, as one single text string.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/user0
+/config/user1
+	The user-settable configuration of the respective hashboard (if
+	present), as one single text string.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/user-set
+/config/user0-set
+/config/user1-set
+	Replace the current configuration. All variables are sent as one
+	single text string.
+
+	Writer:	browser
+	Reader:	configd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/config/factory-reset
+	Writing anything on this topic to erase the user areas of all EEPROMs.
+
+	Writer:	browser
+	Reader:	configd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+
+/config - Configuration management (new-style)
+----------------------------------------------
+
+Note: this isn't implemented yet.
+
+/config/AREA/VAR
+	The current value of variable VAR in area AREA. AREA can be
+	factory, factory0, factory1, user, user0, or user1.
+
+	If the variable is a list, contains the newline-separated values.
+
+	If the variable is an associative array, contains a space-separated
+	list of key names. Individual values can then be accesses through
+	/config/AREA/VAR/KEY.
+
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/AREA/VAR/KEY
+	The current value of the element KEY of variable VAR. VAR must be
+	either a list or an associative array. If VAR is a list, key must
+	be an index >= 0, and <= the length of the list (i.e., one can
+	extend the list by setting its next element).
+
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/AREA/VAR/set
+	Set the respective variable. If the value is absent or an empty
+	string, the variable is deleted. AREA can only be user, user0,
+	or user1.
+
+	If the variable is a list, the newline-separated list of values
+	can be written to it this way. This replaces the entire list.
+
+	QoS:	1 (at least once)
+	Retain:	no
+
+/config/AREA/VAR/KEY/set
+	Set or change an element in a list or associative array.
+	
+	QoS:	1 (at least once)
+	Retain:	no
+
+/config/reload
+	Write anything to reload the configuration from the EEPROMs, and
+	(re)publish the configuration.
+	For development.
+
+	QoS:	1 (at least once)
+	Retain:	no
+
+
+/mine - Mining operation
+------------------------
+
+/mine/epoch
+	This is a list of space-separated elements:
+
+	1) The (decimal) number of the epoch currently being mined.
+	2) The name of the coin, in lower case.
+	3) The name of the algorithm, in lower case.
+
+	The message can also be the string "-". In this case the miner is not
+	currently mining any coin.
+
+	Writer:	mined
+	Reader:	dagd, browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/0/hash-rate
+/mine/1/hash-rate
+	The average hash rate of the board in the respective slot, in MH/s.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	0 (best-effort)
+	Retain:	no
+
+/mine/dag-cache
+	A semicolon-separated list of DAG cache entries. Each DAG cache entry
+	consists of the following comma-separated fields:
+
+	1) The algorithm name, in lower case.
+	2) The epoch number.
+	3) The number of known to be valid DAG lines in the cache file (zero
+	   if there is no cache file).
+	4) The number of DAG lines currently in the cache file (zero if there
+	   is no cache file).
+	5) The number of DAG lines in the complete DAG.
+	6) The next step in the cache (the "proto-DAG") calculation.
+	7) The number of steps required.
+
+	All numbers are decimal.
+
+	Writer:	dagd
+	Reader:	mined, browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/0/state
+/mine/1/state
+	Per-board state. This is a space-separated list of tag:value items,
+	where the tag is a single upper-case letter and the value is a number.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	F	SerDes firmware upload progress, a floating-point number
+		from 0 to 1.
+	D	DAG upload progress, also 0 to 1.
+	M	Mining indication, 0 if the board is not mining, 1 if it is.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+	
+/mine/pool/state
+	Pool connection state. The following space-separated fields:
+	- The pool's host name, followed by a colon and the decimal port
+	  number.
+	- The pool's IPv4 address, as big-endian hexadecimal number with
+	  leading 0x.
+	- 0 if the connection is being attempted, 1 if the connection has
+	  been established.
+	If no connection is defined, /mine/pool/state is set to "-".
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+	
+/mine/pool/statistics
+	Per-pool mining statistics. This is a space-separated list of tag:value
+	items, where the tag is a single upper-case letter and the value is a
+	decimal number.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	C	Seconds since the connection was established (and J, A, R,
+		and S were reset)
+	J	Jobs received from the pool.
+	A	Submissions accepted by the pool.
+	R	Submissions rejected by the pool.
+	S	Number of possibly stales.
+
+	The counters are reset each time we connect to a pool.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	no
+
+/mine/pool/difficulty
+	Approximate share difficulty, in hashes. This is the integer number of
+	the difficulty set by the pool. It is only updated when there are
+	significant changes.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (best effort)
+	Retain:	yes
+
+/mine/0/statistics
+/mine/1/statistics
+	Per-board mining statistics. /mine/0/statistics is for the board in
+	slot 0, /mine/1/statistics for the board in slot 1.
+
+	This is a space-separated list of tag:value items, where the tag is a
+	single upper-case letter and the value is a decimal number.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	U	Seconds since the board started mining (and the counters
+		were reset).
+	G	Good nonces meeting pool difficulty obtained from the
+		hashboard.
+	B	Bad nonces obtained from the hashboard.
+	F	Good nonces not meeting pool difficulty obtained from
+		the hashboard.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	no
+
+/mine/0/total
+/mine/1/total
+	Per-board total of correct hashes delivered. Each time a nonce that
+	is either "good" or "fuzzy" is produced, we add the current share
+	difficulty to the total. The total is therefore an approximation of
+	the total number of hashes processed.
+
+	This is a space-separated list of the approximate time since the
+	mining daemon started, in seconds, and the board's total number of
+	hashes. Both are decimal numbers. The purpose of the timestamp is
+	to detect when the total has been reset.
+
+	Note that we must not retain these updates since the receiver uses
+	the time of arrival for calculating the time interval over which
+	the hashes were counted. If retained, the thus delayed sample would
+	reduce the interval, producing too high an estimate.
+
+	Writer:	mined
+	Reader:	TBD
+	QoS:	0 (best effort)
+	Retain:	no
+
+/mine/0/settings
+/mine/1/settings
+	Per-board hardware settings. If the respective slot is empty, the
+	the value of /mine/+/settings is "-".
+
+	If a board is present, this is a space-separated list of tag:value
+	items, where the tag is a single upper-case letter and the value is
+	a decimal number.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	D	Active dies. Dies may be disabled through configuration.
+	L	Active lanes. Lanes may be disabled through configuration
+		or when link bring-up fails.
+	F	Logic frequency, in Hz.
+	G	Task generation interval, in logic clock cycles.
+	S	SerDes speed, in Mbps.
+
+	Items may be absent. E.g., the number of active lanes is only
+	shown once the link status has been verified.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	yes
+
+/mine/reset
+	If anything is received on this topic, the mining daemon has exited.
+	(This is the "last will" message of mined.)
+
+	All instantaneous mining information is no longer valid and should
+	be reset.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	no
+
+/mine/0/reset
+/mine/1/reset
+	Each time a board is reset, the reset reason is written to
+	/mine/+/reset. There are currently the following reset reasons:
+
+	- "high": the hash rate did not reach the high-water mark in time
+	- "low": the hash rate reached the high-water mark, then fell below
+	  the low-water mark
+	- "perf": the performance monitor stopped to receive data
+	- "invalid": the performance monitor received invalid data.
+
+	Writer:	mined
+	Reader:	crewd, countd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/mine/0/reset-count
+/mine/1/reset-count
+	A list of space-separated tag-value pairs, containing counts of the
+	reset reasons.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	H	High-water mark timeout
+	L	Low-water mark reached
+	P	Performance monitor stopped receiving data
+	I	Performance monitor received invalid data
+	U	Other/unknown reason
+
+	Writer:	countd
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	yes
+
+/mine/0/reset-action
+/mine/1/reset-action
+	Each time a board is reset, the action taken (the type of reset) is
+	written to /mine/+/reset. There are currently the following reset
+	action:
+
+	- "quick": reset SerDes, without reloading firmware
+	- "serdes": reset SerDes and reload firmware
+	- "dag": also reload the DAG
+	- "mined": restart mined
+
+	Writer:	mined, launch-mined
+	Reader:	countd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/mine/0/reset-action-count
+/mine/1/reset-action-count
+	A list of space-separated tag-value pairs, containing counts of the
+	reset actions.
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	Q	Quick reset
+	S	SerDes-only reset
+	D	DAG reload
+	M	mined restart
+	U	Other/unknown reason
+
+	Writer:	countd
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	yes
+
+/mine/quality
+	Mining quality estimate. We define the quality of a result as the
+	number of zero bits at its beginning. /mine/quality if a list of the
+	following space-separated fields:
+
+	- seconds since the board started mining (see /mine/statistics)
+	- position of the first bit reported
+	- pairs of good+fuzzy counters
+
+	The data in /mine/quality is intended for long-term statistics and it
+	is updated only infrequently.
+
+	Note: /mine/quality is temporary. We may rearrange it later.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	0 (best effort)
+	Retain:	yes
+
+/mine/result-threshold
+	The minimum number of zero bits a result must have to be reported on
+	/mine/results. The default is 40.
+
+	Writer:	TBD
+	Reader:	mined
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/results
+	Mining results. This is the block's header hash, the nonce, and the
+	result. The header hash and the result consist of 64 hex digits each.
+	hex digits. The nonce is a hexadecimal number beginning with 0x, and
+	may or may not have leading zeroes. The three values are separated by
+	spaces.
+
+	The reporting threshold can be set through /mine/result-threshold
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	no
+
+/mine/net-perf
+	Network performance statistics. This is a space-separated list of
+	decimal numbers. There are currently two numbers:
+
+	- the second is the RTT estimate from TCP,
+	- the third is the total number of TCP retransmissions.
+
+	Both RTTs are in milliseconds and are the instantaneous values taken
+	at the time the result message was received.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	no
+
+/mine/dest
+	URI of the destination mined is operating on.
+
+	Write:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/dest-set
+	URI of the destination (account/wallet and pool) mined should operate
+	on. When dest-set is written, mined will switch to this destination.
+	If mined is already using the destination, setting it again has no
+	effect.
+
+	The value is retained and the retained value is used by mined if
+	started without an explicit destination.
+
+	Write:	browser (R&D)
+	Reader:	mined
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/daemon - Daemon control
+------------------------
+
+/daemon/NAME/time
+	Time at which the respective daemon was started, 0 if it has stopped.
+	This is a decimal integer representing the Unix time.
+
+	Write:	kunai
+	Reader:	browser, kunai-time
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/daemon/NAME/log
+	Live feed of the output (stdout and stderr) of the respective daemon.
+
+	Write:	kunai
+	Reader:	browser, kunai-log
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/daemon/NAME/current
+	The output of the current run of the respective daemon. To publish
+	the current output, write anything to .../current-get (see below).
+
+	Write:	kunai
+	Reader:	browser, kunai-log
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/daemon/NAME/current-get
+	Writing anything to current-get requests publishing the current output
+	of the daemon on ../current. If no such daemon exists, the request is
+	ignored.
+
+	Write:	browser, kunai-log
+	Reader:	kunai
+	QoS:	1 (at least once)
+	Retain:	no
+
+/daemon/NAME/start
+	Write anything to start the respective daemon. If no such daemon
+	exists or if it is already running, the request is ignored.
+
+	Write:	browser, kunai-start
+	Reader:	kunai
+	QoS:	1 (at least once)
+	Retain:	no
+
+/daemon/NAME/stop
+	Write anything to stop the respective daemon. If no such daemon
+	exists or if it is already running, the request is ignored.
+
+	Write:	browser, kunai-stop
+	Reader:	kunai
+	QoS:	1 (at least once)
+	Retain:	no
+
+/daemon/NAME/cycle
+	Write anything to cycle the respective daemon. If the daemon is
+	stopped, cycling restarts it. If it is already running, cycling first
+	stops, then restarts it.
+
+	Write:	browser, kunai-cycle
+	Reader:	kunai
+	QoS:	1 (at least once)
+	Retain:	no
+
+
+/crew - Monitor a crew of miners
+--------------------------------
+
+***  Everything under /crew is experimental and will change !  ***
+
+/crew/peers
+	A space-separated list of peers. Each peer entry is a comma-separated
+	list of tag:value items:
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	A	IPv4 address (as dotted quad) and the port number. Address
+		and port are separated by a colon.
+	T	Number of seconds since the message counters were last reset.
+	S	Number of messages sent.
+	R	Number of unicast messages received.
+	M	Number of multicast messages received.
+	E	Number of received messages that contained errors.
+	I	Number of seconds since the last message was received.
+	L	Number of seconds since the last message was sent.
+
+	Writer:	crewd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/crew/peer-add
+	Writing a peer address (hostname:port, where the port is optional
+	and defaults to 12588) requests that crewd contact the specified peer.
+
+	Writer:	browser
+	Reader:	crewd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/crew/miners
+	A space-separated list of miners. Each miner is identified by a
+	hexadecimal ID number, with leading 0x.
+
+	Writer:	crewd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/crew/update
+	An update of a miner status.
+
+	This is a space-separated list of tag:value items, where the tag is one
+	or two upper-case letters or digits and the value is usually a decimal
+	number (exceptions are indicated below).
+
+	Tag	Description
+	---	-----------------------------------------------------------
+	A	Total number of shares from this miner accepted by a pool
+		since data collection has started.
+	A0	Average hash rate (EWMA with decay to 10% in 15 minutes), in
+		MH/s.
+	A1	Likewise, for board 1.
+	B	Seconds since data collection has started.
+	CN	Coin name.
+	B0	Number of bad lanes on the board in slot 0.
+	B1	Likewise, for board 1.
+	D0	Number of active dies on the board in slot 0.
+	D1	Likewise, for board 1.
+	DR	Rig name in the current destination URI (up to eight
+		characters, truncated if longer).
+	DW	Wallet or account name in the current destination URI (the
+		first eight characters, a leading 0x is removed).
+	EN	Epoch number.
+	F	Flags. A hexadecimal number with leading 0x. The following
+		bits are defined:
+		  0x0001	Temperature warning
+		  0x0002	Temperature shutdown
+		  0x0004	Power shutdown
+		  0x0008	No connection to pool
+		  0x0010	I2C shutdown
+		  0x0020	Card (uSD) warning
+		  0x0040	I2C warning
+		  0x0080	Boot problem
+		  0x8000	USER button is pressed (for development)
+	FW	Firmware data. Seconds since the Unix epoch.
+	G0	Generation interval of the board in slot 0.
+	G1	Likewise, for board 1.
+	H0	Total number of hashes (see /mine/+/total) seen from board 0
+		of this miner since data collection has started. The number of
+		hashes is divided by 2^30.
+	H1	Likewise, for board 1.
+	I	Miner ID. A hexadecimal number with leading 0x.
+	I0	I2C reset count, bus 0.
+	I1	Bus 1. Currently omitted since we have no devices on bus 1.
+	I2	Bus 2.
+	I3	Bus 3.
+	I4	Bus 4.
+	I5	Bus 5.
+	IP	IPv4 address as hexadecimal number with leading 0x. A.B.C.D
+		encoded as A * 2^24 + B * 2^16 + C * 2^8 + D.
+	L	Seconds since the last update from the miner.
+	N	Miner name (set by user). The name is an ASCII string that
+		contains no whitespace. It can be empty. 
+	N0	Serial number of the board in slot 0, the empty string if there
+		is no board in slot 0.
+	N1	Likewise, for board 1.
+	PA	Port number of the pool.
+	PP	IPv4 address of the pool, as single hexadecimal number with 0x.
+	R0	Board reset count, slot 0.
+	R1	Likewise, for board 1.
+	RR	Rejection ratio, as floating-point number.
+	S0	SerDes speed of the board in slot 0, in Mbps.
+	S1	Likewise, for board 1.
+	SR	Stale ratio, as floating-point number.
+	ST	System time. Seconds since the Unix epoch.
+	T	Maximum temperature in degrees Celsius. This is an integer.
+	UT	Uptime, in seconds.
+
+	Writer:	crewd
+	Reader:	browser
+	QoS:	1 (best effort)
+	Retain:	no
+
+
+/diag - Diagnostics
+-------------------
+
+/diag/request
+	Write to request a diagnostic. The format is a command word, optionally
+	followed by a space and further arguments. The following commands are
+	recognized:
+
+	- myip: obtain the IP address with which the miner appears on the
+	  Internet. Some pools use this address as a means of authenticating
+	  configuration change requests.
+
+	- mtr: discover the path to the Internet address given as argument,
+	  and show losses and round-trip-times.
+
+	- disc: run a bus discovery.
+
+	- ecbt: run a pattern test on all available buses.
+
+	Write:	browser
+	Reader:	diagd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/diag/result/myip
+/diag/result/mtr
+/diag/result/disc
+	Results from diagnostics. There can be the following values:
+
+	- empty: no result is available yet
+
+	- * (a single charachter, no newline): a diagnostic has been
+	  requested and is being generated.
+
+	- anything else: the results of the diagnostic.
+
+	Write:	diagd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/test - Reserved for production testing
+---------------------------------------
+
+Production test tools create topics under /test. Do not use /test/# for
+anything else !
