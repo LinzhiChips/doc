@@ -221,7 +221,14 @@ or in the file cc-by-legalcode.txt
 /sys/i2c/warning
 	If a critical I2C device (temperature sensor or configuration EEPROM)
 	cannot be accessed, /sys/i2c/warning contains the uptime (in seconds)
-	when the latest warning was received. 0 if no I2C warning is pending.
+	when the latest warning was received, a space, and a bit set indicating
+	the slot that has reported the problem.
+
+	The bit set is 0 if no slot was indicated or if the problem was with
+	the I2C bus on the controller. Else, it is 1 for slot 0, 2 for slot 1,
+	3 for both.
+
+	If no I2C warning is pending, uptime and bit set are both zero.
 
         /sys/i2c/warning does not auto-clear. Run "i2c-troubled clear".
 
