@@ -283,6 +283,27 @@ or in the file cc-by-legalcode.txt
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/sys/net/mac
+	The MAC address of the Ethernet interface.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/sys/dcdc0/version
+/sys/dcdc1/version
+	The version of the DCDC daughterboard on the hashboard in the
+	respective slot. Either 1 or 2.
+
+	Nothing is published for boards that are absent. Note that versions
+	are currently integers but may become arbitrary strings in the future.
+
+	Writer:	boot process
+	Reader:	TBD
+	QoS:	1 (at least once)
+	Retain:	yes
+
 
 /power - Power management and monitoring
 ----------------------------------------
@@ -480,7 +501,7 @@ or in the file cc-by-legalcode.txt
 	which a 100% duty cycle is selected and the duty cycle value in the
 	entry is ignored.
 
-	Temperatures most increase strictly monotonously. Duty cycle values
+	Temperatures must increase strictly monotonously. Duty cycle values
 	must increase monotonously. Incorrect entries are ignored.
 
 	Default: 0:100
@@ -728,10 +749,8 @@ Note: this isn't implemented yet.
 	The current value of variable VAR in area AREA. AREA can be
 	factory, factory0, factory1, user, user0, or user1.
 
-	If the variable is a list, contains the newline-separated values.
-
 	If the variable is an associative array, contains a space-separated
-	list of key names. Individual values can then be accesses through
+	list of key names. Individual values can then be accessed through
 	/config/AREA/VAR/KEY.
 
 	QoS:	1 (at least once)
@@ -739,9 +758,7 @@ Note: this isn't implemented yet.
 
 /config/AREA/VAR/KEY
 	The current value of the element KEY of variable VAR. VAR must be
-	either a list or an associative array. If VAR is a list, key must
-	be an index >= 0, and <= the length of the list (i.e., one can
-	extend the list by setting its next element).
+	an associative array.
 
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -751,16 +768,24 @@ Note: this isn't implemented yet.
 	string, the variable is deleted. AREA can only be user, user0,
 	or user1.
 
-	If the variable is a list, the newline-separated list of values
-	can be written to it this way. This replaces the entire list.
-
 	QoS:	1 (at least once)
 	Retain:	no
 
 /config/AREA/VAR/KEY/set
-	Set or change an element in a list or associative array.
+	Set or change an element in an associative array.
 	
 	QoS:	1 (at least once)
+	Retain:	no
+
+/config/AREA/VAR/KEY/move
+	Move an element of an associative array to the position indicated in
+	the value written in this message. A value of 0 moves it to the
+	beginning, pushing all other entries down, 1 to the second position,
+	etc.
+
+	This changes the value of /config/AREA/VAR.
+
+	QoS:	2 (exactly once)
 	Retain:	no
 
 /config/reload
