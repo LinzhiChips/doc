@@ -283,14 +283,6 @@ or in the file cc-by-legalcode.txt
 	QoS:	1 (at least once)
 	Retain:	yes
 
-/sys/net/mac
-	The MAC address of the Ethernet interface.
-
-	Writer:	boot process
-	Reader:	browser
-	QoS:	1 (at least once)
-	Retain:	yes
-
 /sys/dcdc0/version
 /sys/dcdc1/version
 	The version of the DCDC daughterboard on the hashboard in the
@@ -677,6 +669,54 @@ or in the file cc-by-legalcode.txt
 
 	Writer:	nomelt (via az5, etc.)
 	Reader:	browser, coord, crewd
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+Network status
+--------------
+
+/net/mac
+	The MAC address of the Ethernet interface.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/net/dhcp/active
+	1 if the network configuration comes from DHCP, 0 if static values
+	or defaults are used.
+
+	Writer:	boot process, udhcpc script
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/net/dhcp/last-lease
+	The miner uptime, in seconds, when the latest DHCP lease was last
+	received/renewed. Like /sys/uptime, this is a floating-point number.
+
+	Writer:	udhcpc script
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+	
+/net/dhcp/ip
+/net/dhcp/netmask
+/net/dhcp/gw
+/net/dhcp/dns
+/net/dhcp/hostname
+/net/dhcp/domain
+/net/dhcp/ntp
+/net/dhcp/lease
+/net/dhcp/server
+	IP adddress, netmask, list of routers, list of DNS servers, hostname,
+	host's domain, list of NTP servers, the IP of the DHCP server, and
+	the lease time (in seconds) as obtained from DHCP.
+
+	Writer:	udhcpc script
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
