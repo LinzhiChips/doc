@@ -783,8 +783,6 @@ Network status
 /config - Configuration management (new-style)
 ----------------------------------------------
 
-Note: this isn't implemented yet.
-
 /config/AREA/VAR
 	The current value of variable VAR in area AREA. AREA can be
 	factory, factory0, factory1, user, user0, or user1.
@@ -793,6 +791,10 @@ Note: this isn't implemented yet.
 	list of key names. Individual values can then be accessed through
 	/config/AREA/VAR/KEY.
 
+	If a variable is deleted, an empty string is sent.
+
+	Writer:	configd
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
@@ -800,6 +802,14 @@ Note: this isn't implemented yet.
 	The current value of the element KEY of variable VAR. VAR must be
 	an associative array.
 
+	When an element is created or deleted, both /config/AREA/VAR and
+	/config/AREA/VAR/KEY are updated. Note that the updates can reach the
+	reader in any order.
+
+	If an element is deleted, an empty string is sent.
+
+	Writer:	configd
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
@@ -808,12 +818,16 @@ Note: this isn't implemented yet.
 	string, the variable is deleted. AREA can only be user, user0,
 	or user1.
 
+	Writer:	browser
+	Reader:	configd
 	QoS:	1 (at least once)
 	Retain:	no
 
 /config/AREA/VAR/KEY/set
 	Set or change an element in an associative array.
 	
+	Writer:	browser
+	Reader:	configd
 	QoS:	1 (at least once)
 	Retain:	no
 
@@ -825,6 +839,8 @@ Note: this isn't implemented yet.
 
 	This changes the value of /config/AREA/VAR.
 
+	Writer:	browser
+	Reader:	configd
 	QoS:	2 (exactly once)
 	Retain:	no
 
@@ -833,6 +849,83 @@ Note: this isn't implemented yet.
 	(re)publish the configuration.
 	For development.
 
+	Writer:	browser
+	Reader:	configd
+	QoS:	1 (at least once)
+	Retain:	no
+
+
+/account - User account management
+----------------------------------
+
+User account management is based on new-style configuration management.
+Access to all the topics, except for /account/user/USER/chpw and
+/account/user/USER/result, is limited to administrators.
+
+/account/users
+	A space-separated list of user names.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/account/user/USER
+	The redacted account record of USER. This is the comma-separated list
+	of groups the user belongs to. If the list is empty, a dash "-" is
+	sent. If an account is deleted, an empty string is sent.
+
+	Writer:	configd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/account/user/USER/set
+	Writing to /account/user/USER/set creates, changes, or deletes an
+	account:
+
+	- If the message contains the password hash, a colon, and the group
+	  list, then both password hash and groups are set.
+	- If the message contains only a group list (i.e., there is no colon),
+	  the password is preserved and only the groups change. If the group
+	  list is empty, a dash "-" has to be sent.
+	- If the message is empty, the account is deleted.
+
+	Writer:	browser
+	Reader:	configd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/account/user/USER/setpw
+	Set the password of a user account. The message contains the new
+	plaintext password.
+
+	Writer:	browser
+	Reader:	configd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/account/user/USER/chpw
+	Change the password of a user account. The message contains the old
+	password, a space, the new password, and, optionally, another space
+	and a token.
+
+	If a token is present, the success or failure of the operation is
+	indicated in /account/user/USER/result.
+
+	Writer:	browser
+	Reader:	configd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/account/user/USER/result
+	The result of a password change with .../chpw. If the change was
+	successful, the message contains the token that was sent with the
+	change request. If the operation failed, the message contains the
+	token, a space, and an error message (which main contain spaces).
+
+	Writer:	browser
+	Reader:	configd
 	QoS:	1 (at least once)
 	Retain:	no
 
