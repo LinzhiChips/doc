@@ -1,0 +1,47 @@
+ETH -> ETC transition
+=====================
+
+The current firmware has a bug that can cause dagd to fail if switching
+coins. These instructions take this into account.
+
+Furthermore, they indicate where an already computed DAG can be used (if
+one is available), to speed up the transition.
+
+- Check on crazypool which DAG to use (epoch and when the next change is
+  due):
+  https://etc.crazypool.org/#/account/0x3091385d7AAa9d801c3e4C56A8dF19B3cDB0a35b
+
+- Make sure there's enough space on the uSD card (we need a bit less than
+  3 GB).
+  If there is not enough space:
+  - Kill dagd (and leave it dead until the switch is complete)
+  - Use ssh (create an account in Configuration > Account if necessary) to
+    login to the miner and remove the highest-numbered DAG in /data/dag.
+    E.g., cd /data/dag; rm ethash-416.dag*
+
+- If you already have a suitable ETC DAG file on another ETC miner:
+  - Copy the ETC DAG from the ETC miner's /data/dag/ to the ETH miner
+    (should take less than 15 minutes)
+  If you don't have a suitable ETC DAG yet, the miner will create it.
+  This takes about 3.5 hours.
+
+- Configure ETC pool(s):
+  - Add pool URLs either manually or with the wizard
+  - Click the checkboxes to disable automatic selection (we don't want the 
+    miner to perform an unintended switch, since this may cause dagd to
+    fail and even if it works, the miner would spend hours computing the
+    new DAG)
+
+- Kill dagd (if not already dead)
+- Switch from ETH pool to ETC pool(s):
+  - Disable automatic selection of all ETH pools
+  - Enable automatic selection of all ETC pools
+  - Select one of the ETC pools by clicking the red triangle (appears when
+    hovering) next to it
+  - Confirm that you really want to switch coins
+
+- Start dagd
+
+- dagd will first verify the new DAG, then mined will set up the ASICs and
+  mining starts. dagd will continue to pre-compute more DAGs, and consume
+  the cached ETH DAGs to make room.
