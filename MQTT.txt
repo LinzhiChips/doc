@@ -300,6 +300,9 @@ or in the file cc-by-legalcode.txt
 /power - Power management and monitoring
 ----------------------------------------
 
+Note: /power/.../control/... and /power/.../status/SWITCH are only supported
+on LD001. For LD002, readouts can only be requested through /power/dump
+
 /power/${SLOT}/${CHANNEL}/control/set/${KEY}
 	Set value interface for isl68127 DCDC power.
 	${SLOT}:    char of '0' or '1' select the ECB slot.
@@ -1250,7 +1253,16 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	no
 
 /mine/dest
-	URI of the destination mined is operating on.
+	(Unexpanded) URI of the destination mined is operating on. This can be
+	used to see which destination from the configuration has been selected.
+
+	Write:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/dest-actual
+	Line /mine/dest, but after expanding variables.
 
 	Write:	mined
 	Reader:	browser
