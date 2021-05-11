@@ -791,8 +791,8 @@ Network status
 	factory, factory0, factory1, user, user0, or user1.
 
 	If the variable is an associative array, contains a space-separated
-	list of key names. Individual values can then be accessed through
-	/config/AREA/VAR/KEY.
+	list of key names, or a single dash (-) if the array is empty.
+	Individual values can then be accessed through /config/AREA/VAR/KEY.
 
 	If a variable is deleted, an empty string is sent.
 
@@ -866,7 +866,8 @@ Access to all the topics, except for /account/user/USER/chpw and
 /account/user/USER/result, is limited to administrators.
 
 /account/users
-	A space-separated list of user names.
+	A space-separated list of user names. A dash (-) if there are no
+	accounts.
 
 	Writer:	configd
 	Reader:	browser
