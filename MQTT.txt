@@ -1456,8 +1456,8 @@ Access to all the topics, except for /account/user/USER/chpw and
 	N0	Serial number of the board in slot 0, the empty string if there
 		is no board in slot 0.
 	N1	Likewise, for board 1.
-	PA	Port number of the pool.
-	PP	IPv4 address of the pool, as single hexadecimal number with 0x.
+	PA	IPv4 address of the pool, as single hexadecimal number with 0x.
+	PP	Port number of the pool.
 	R0	Board reset count, slot 0.
 	R1	Likewise, for board 1.
 	RR	Rejection ratio, as floating-point number.
