@@ -1486,6 +1486,12 @@ Access to all the topics, except for /account/user/USER/chpw and
 	  Internet. Some pools use this address as a means of authenticating
 	  configuration change requests.
 
+	  If an argument is present, it selects the IP address service.
+	  Currently, the following services are defined:
+	  - ifconfig.co (default)
+	  - ipify.org
+	  - icanhazip.com
+
 	- mtr: discover the path to the Internet address given as argument,
 	  and show losses and round-trip-times.
 
