@@ -658,7 +658,7 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	Retain:	yes
 
 /temp/warning
-	/temp/shutdown contains the warning flag, a space, and a bit set of the
+	/temp/warning contains the warning flag, a space, and a bit set of the
 	signal(s) that were active when the warning was triggered.
 
 	If a thermal warning is being indicated, the flag is 1 and the bit set
@@ -1116,6 +1116,18 @@ Access to all the topics, except for /account/user/USER/chpw and
 	QoS:	0 (best effort)
 	Retain:	yes
 
+mine/0/bad-channels
+mine/1/bad-channels
+	A space-separated list of channels for which link bring-up failed. Each
+	channel is identified by the number of the sending die, a dash, and the
+	number of the receiving die. If there were no bad channels, a "-" is
+	sent.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
 /mine/reset
 	If anything is received on this topic, the mining daemon has exited.
 	(This is the "last will" message of mined.)
@@ -1451,6 +1463,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	IP	IPv4 address as hexadecimal number with leading 0x. A.B.C.D
 		encoded as A * 2^24 + B * 2^16 + C * 2^8 + D.
 	L	Seconds since the last update from the miner.
+	LR	Time of latest report (0 if there is no report.)
 	N	Miner name (set by user). The name is an ASCII string that
 		contains no whitespace. It can be empty. 
 	N0	Serial number of the board in slot 0, the empty string if there
@@ -1466,6 +1479,10 @@ Access to all the topics, except for /account/user/USER/chpw and
 	SR	Stale ratio, as floating-point number.
 	ST	System time. Seconds since the Unix epoch.
 	T	Maximum temperature in degrees Celsius. This is an integer.
+	T0	Fan RPM (tacho), for the right or rear #1 fan.
+	T1	Left or rear #2 fan.
+	T2	Front #1 fan.
+	T3	Front #2 fan.
 	UT	Uptime, in seconds.
 
 	Writer:	crewd
@@ -1520,6 +1537,97 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
+
+
+/report - System reports
+-------------------------
+
+/report/INDEX/title
+	A timestamp (seconds since the beginning of the Unix epoch), a space,
+	and the title of the report. The title may be an empty string.
+
+	Note that, if a miner does not use NTP, or a reports was generated
+	early in the boot process, before correct time was acquired over NTP,
+	the timestamp will be the number of seconds since the system has
+	booted.
+
+	Write:	reportd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/report/indices
+	This is a space-separated list of report indices. If the list is
+	empty, a dash (-) is sent.
+
+	Write:	reportd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/report/latest
+	This is the same as /report/INDEX/title for the latest report. If there
+	are no reports, /report/latest is "-".
+
+	The purpose of /report/latest is to make it easier to determine whether
+	there are reports.
+
+	Write:	reportd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/report/overflow
+	If a new report is requested when the maximum number of reports has
+	already reached the maximum, and rotating is not enabled, then the time
+	(in seconds since the beginning of the Unix epoch) at which the first
+	report was lost is indicated in /report/overflow.
+
+	If no report was lost due to the list overflowing, or a report has been
+	deleted since the last overflow, /report/overflow is 0.
+
+	Write:	reportd, browser
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/report/get
+	To request sending a report (on /report/INDEX/zip), write the index of
+	the report on /report/get. If no report with this index exists, the
+	requiest is ignored.
+
+	Write:	browser
+	Reader:	reportd
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/report/delete
+	To delete a report, write its index to /report/delete. If no report
+	with this index exists, the request is ignored.
+
+	Write:	browser
+	Reader:	reportd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/report/INDEX/zip
+	If a report was requested by writing its index to /report/get, the
+	binary ZIP file is then sent with the corresponding /report/INDEX/zip
+	topic.
+
+	Write:	reportd
+	Reader:	browser
+	QoS:	2 (exactly once)
+	Retain:	no
+
+/report/generate
+	Request generation of a new report, with the content of the message
+	used for the report's topic.
+	
+	Write:	TBD
+	Reader:	reportd
+	QoS:	2 (exactly once)
+	Retain:	no
 
 
 /test - Reserved for production testing
