@@ -1100,15 +1100,15 @@ Access to all the topics, except for /account/user/USER/chpw and
 	a decimal number.
 
 	Tag	Description
-	---	-----------------------------------------------------------
+	---	---------------------------------------------------------------
 	D	Active dies. Dies may be disabled through configuration.
-	L	Active lanes. Lanes may be disabled through configuration
+	L	Active channels. Channels may be disabled through configuration
 		or when link bring-up fails.
 	F	Logic frequency, in Hz.
 	G	Task generation interval, in logic clock cycles.
 	S	SerDes speed, in Mbps.
 
-	Items may be absent. E.g., the number of active lanes is only
+	Items may be absent. E.g., the number of active channels is only
 	shown once the link status has been verified.
 
 	Writer:	mined
@@ -1425,7 +1425,7 @@ mine/1/bad-channels
 	A1	Likewise, for board 1.
 	B	Seconds since data collection has started.
 	CN	Coin name.
-	B0	Number of bad lanes on the board in slot 0.
+	B0	Number of bad channels on the board in slot 0.
 	B1	Likewise, for board 1.
 	D0	Number of active dies on the board in slot 0.
 	D1	Likewise, for board 1.
