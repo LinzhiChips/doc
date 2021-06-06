@@ -423,7 +423,7 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 /fan/right/pwm-set
 /fan/front/pwm-set
 /fan/rear/pwm-set
-	PWM control of left/right fan. (Note: these are the LC001.02 fans
+	PWM control of left/right fan. (Note: these are the LC001.02 fan
 	names. On LC001.01, "right" would be the "front" fan. On LC001.05
 	the names changed again, and we have PWM for front and rear fans.)
 
@@ -503,6 +503,29 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 
 	Writer:	boot process, browser
 	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/pwm-snapshot
+	The PWM values reported before a thermal shutdown occurred. The this is
+	a space-separated list with the value for Right/front followed by the
+	value for Left/rear. If a value is not known, a dash it placed in its
+	stead.
+
+	Writer:	reportd	
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
+/fan/rpm-snapshot
+	The RPM values reported before a thermal shutdown occurred. The this is
+	a space-separated list with the value for Right/front followed by the
+	value for Left/rear. If a value is not known, a dash is placed in its
+	stead.
+
+	Writer:	reportd
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
@@ -672,6 +695,29 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 
 	Writer:	nomelt (via az5, etc.)
 	Reader:	browser, coord, crewd
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/0/skip
+/temp/1/skip
+	This is a copy of the content of the SKIP_TCHAN configuration variable,
+	made at the time the thermal protection was set up. I.e., it reflects
+	the active setup, irrespective of configuration changes that may have
+	happened later.
+
+	Writer:	nomelt
+	Reader:	browser, crewd
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/0/snapshot
+/temp/1/snapshot
+	The uptime the last update was received before a thermal shutdown
+	occurred, a space, and then the content of the respective
+	/temp/+/current.
+
+	Writer:	reportd
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
@@ -1425,7 +1471,8 @@ mine/1/bad-channels
 	A1	Likewise, for board 1.
 	B	Seconds since data collection has started.
 	CN	Coin name.
-	B0	Number of bad channels on the board in slot 0.
+	B0	Number of bad channels on the board in slot 0. (255 for >= 255
+		bad channels.)
 	B1	Likewise, for board 1.
 	D0	Number of active dies on the board in slot 0.
 	D1	Likewise, for board 1.
@@ -1446,6 +1493,8 @@ mine/1/bad-channels
 		  0x0080	Boot problem
 		  0x4000	Highlighted
 		  0x8000	USER button is pressed (for development)
+	F0	PWM setting (in percent) for Left or rear fan.
+	F1	Right or front fan;
 	FW	Firmware data. Seconds since the Unix epoch.
 	G0	Generation interval of the board in slot 0.
 	G1	Likewise, for board 1.
