@@ -770,67 +770,8 @@ Network status
 	Retain:	yes
 
 
-/config - Configuration management (old-style)
-----------------------------------------------
-
-/config/factory
-	The factory-set configuration, as one single text string.
-
-	Writer:	configd
-	Reader:	browser
-	QoS:	1 (at least once)
-	Retain:	yes
-
-/config/factory0
-/config/factory1
-	The factory-set configuration of the respective hashboard (if
-	present), as one single text string.
-
-	Writer:	configd
-	Reader:	browser
-	QoS:	1 (at least once)
-	Retain:	yes
-
-/config/user
-	The user-settable configuration, as one single text string.
-
-	Writer:	configd
-	Reader:	browser
-	QoS:	1 (at least once)
-	Retain:	yes
-
-/config/user0
-/config/user1
-	The user-settable configuration of the respective hashboard (if
-	present), as one single text string.
-
-	Writer:	configd
-	Reader:	browser
-	QoS:	1 (at least once)
-	Retain:	yes
-
-/config/user-set
-/config/user0-set
-/config/user1-set
-	Replace the current configuration. All variables are sent as one
-	single text string.
-
-	Writer:	browser
-	Reader:	configd
-	QoS:	2 (exactly once)
-	Retain:	no
-
-/config/factory-reset
-	Writing anything on this topic to erase the user areas of all EEPROMs.
-
-	Writer:	browser
-	Reader:	configd
-	QoS:	2 (exactly once)
-	Retain:	no
-
-
-/config - Configuration management (new-style)
-----------------------------------------------
+/config - Configuration management
+----------------------------------
 
 /config/AREA/VAR
 	The current value of variable VAR in area AREA. AREA can be
@@ -907,7 +848,7 @@ Network status
 /account - User account management
 ----------------------------------
 
-User account management is based on new-style configuration management.
+User account management is based on the configuration system.
 Access to all the topics, except for /account/user/USER/chpw and
 /account/user/USER/result, is limited to administrators.
 
