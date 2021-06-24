@@ -1,0 +1,29 @@
+Resuming after a shutdown
+=========================
+
+The way to resume mining after a shutdown has changed with firmware
+fw-test-20210624-0926 and later. If we have had a shutdown, the
+following actions will yield the results in the table:
+
+Action			Clear fault	Reboot		Stop/restart mined (1)
+			---------------	---------------	------------------
+Old version (2)		stays down	resumes mining	resumes mining
+TRIP_MASTER (3) not set	resumes mining	see table below	stays down
+TRIP_MASTER is set	stays down	see table below	stays down
+
+SWITCHES_ON_BOOT (3)	Power on	Power off	Restore last
+			---------------	---------------	---------------
+TRIP_MASTER not set	resumes mining	stays down	resumes mining
+TRIP_MASTER is set	resumes mining	stays down	stays down
+
+To resume mining if TRIP_MASTER is set, first clear the fault, then go to
+Power > On/off and switch power back on. Switching on power without clearing
+the fault may work, but coord, the coordination daemon, may turn power off
+again anytime unless the fault is cleared. A reboot clears the fault as well.
+
+(1) In System > Daemons
+(2) Older than fw-test-20210624-0926
+(3) In Configuration > Controller > General
+
+Furthermore, mined is now stopped after a shutdown. Older versions left it
+running, and had it try to operate the powered-down board.
