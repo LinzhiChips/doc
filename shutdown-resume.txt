@@ -2,8 +2,10 @@ Resuming after a shutdown
 =========================
 
 The way to resume mining after a shutdown has changed with firmware
-fw-test-20210624-0926 and later. If we have had a shutdown, the
-following actions will yield the results in the table:
+fw-test-20210624-0926 and later.
+
+The following table shows the results various actions will produce after
+a shutdown:
 
 Action			Clear fault	Reboot		Stop/restart mined (1)
 			---------------	---------------	------------------
@@ -16,14 +18,74 @@ SWITCHES_ON_BOOT (3)	Power on	Power off	Restore last
 TRIP_MASTER not set	resumes mining	stays down	resumes mining
 TRIP_MASTER is set	resumes mining	stays down	stays down
 
-To resume mining if TRIP_MASTER is set, first clear the fault, then go to
-Power > On/off and switch power back on. Switching on power without clearing
-the fault may work, but coord, the coordination daemon, may turn power off
-again anytime unless the fault is cleared. A reboot clears the fault as well.
-
 (1) In System > Daemons
 (2) Older than fw-test-20210624-0926
 (3) In Configuration > Controller > General
 
-Furthermore, mined is now stopped after a shutdown. Older versions left it
-running, and had it try to operate the powered-down board.
+Mined is now stopped after a shutdown. Older versions left it running, and
+let it try to operate the powered-down board.
+
+
+Resume mining after a shutdown
+------------------------------
+
+1) Clear the fault. This can be done by clicking on "Clear" or by rebooting
+   the miner.
+
+   If TRIP_MASTER is not set, the boards will then power on again and
+   resume mining.
+
+2) If TRIP_MASTER is set, go to Power > On/off and switch power back on.
+   The boards will then be powered up and resume mining.
+
+
+Recommended settings
+--------------------
+
+The setting of Configuration > Controller > General > SWITCHES_ON_BOOT and
+Configuration > Controller > General > TRIP_MASTER determine how aggressively
+a miner will try to power up, and how it will react to power failures.
+
+A) SWITCHES_ON_BOOT = "on", TRIP_MASTER = "only power down until cleared":
+   This setting makes the miner mine when unattended, only stop if there is a
+   problem, and resume as soon as it is cleared.
+
+   If power fails before the problem is cleared, the miner will resume mining
+   when power resumes. This also avoids a miner shutting down if mains power
+   failures lead to DCDC shutdowns.
+
+B) SWITCHES_ON_BOOT = "on", TRIP_MASTER = "turn off master power":
+   Like above, but mining only resumes after clearing a fault if the master
+   power switch in Power > On/off is turned on again. Note that the miner will
+   still resume mining after a power failure, even if the fault has not been
+   cleared.
+
+   This setting may be useful for a workflow where faults are routinely cleared
+   before examining failed miners.
+
+C) SWITCHES_ON_BOOT = "last", TRIP_MASTER = "only power down until cleared":
+   This gives priority to shutting down miners via Power > On/off, but lets
+   it resume after power failures, as described above.
+
+D) SWITCHES_ON_BOOT = "last", TRIP_MASTER = "turn off master power":
+   This ensures that a miner that has shut down will only return to operation
+   after someone has had a chance to look at it.
+
+   If power fails while the miner is shut down, it will remain shut down after
+   power returns. Power cycling removes the shutdown indication, but any miner
+   that is still powered down can be found in the crew by the "OFF" status in
+   the flags column. Details of the shutdown may be in the report, in
+   System > Reports, if the miner has generated one.
+
+E) SWITCHES_ON_BOOT = "off", TRIP_MASTER = "only power down until cleared":
+   if there is any problem, the miner will shut down and stay down. The miner
+   also does not resume after loss of power. This setting is suitable for
+   miners that should only run under supervision, e.g., if they are operating
+   in an unsafe configuration (lack of cooling, etc.)
+
+F) SWITCHES_ON_BOOT = "off", TRIP_MASTER = "turn off master power": this adds
+   the power switch as second confirmation before the miner will resume after
+   a shutdown.
+
+Of the above settings, the combinations A, C, D and F should be the most
+useful, with the choice among them depending on operational requirements.
