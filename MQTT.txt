@@ -415,6 +415,37 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	QoS:	0 (at most once)
 	Retain:	no
 
+/power/0/total_input
+/power/1/total_input
+	The total 12 V input power of the respective hashboard, in Watt.
+	Note that this does not include:
+	- losses in the power supplies,
+	- power consumed by the fans,
+	- power consumed by the controller.
+
+	Writer:	pwrpolld
+	Reader:	TBA
+	QoS:	1 (at most once)
+	Retain:	no
+
+/power/on/master
+/power/on/slot0
+/power/on/slot1
+	On/off control for mining. Writing 0 to one of the topics stops the
+	respective mined(s) and turns off the board(s). Writing 1 turns them on
+	and restarts the mined(s). The default state of the switches is "on".
+
+	The master switch controls both boards. For a board to be turned on,
+	both the master switch and the respective slot switch have to be "on".
+
+	Note that the per-slot switches affect both boards unless
+	SEPARATE_MINED is set.
+
+	Writer:	boot process, browser, coord
+	Reader:	browser, coord
+	QoS:	1 (at least once)
+	Retain:	yes
+
 
 /fan - Fan control and monitoring
 ---------------------------------
@@ -609,8 +640,8 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 
 /card/warning
 	If an IO error has been reported by the uSD card, /card/warning
-	contains the update (in seconds) of the latest error. 0 if no error
-	has been reported.
+	contains the uptime (in seconds) when the latest error occurred. 0 if
+	no error has been reported.
 
 	/card/warning does not auto-clear. Run "card-troubled clear" or
 	write "0" to /card/warning.
@@ -717,6 +748,24 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	/temp/+/current.
 
 	Writer:	reportd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/temp/0/overdue
+/temp/1/overdue
+	If no temperature readings have been received from any of the dies in
+	a chip for several update periods, the list of overdue chips is
+	reported in /temp/+/overdue.
+
+	The message contains the uptime when the a list was last changed, a
+	space, space-separated list of chip entries, where each entry consists
+	of the die numbers, separated by a comma, another comma, and then the
+	time in seconds since the last update was received.
+
+	If no chips are overdue, an empty message is sent.
+
+	Writer:	coord
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1432,10 +1481,12 @@ mine/1/bad-channels
 		  0x0020	Card (uSD) warning
 		  0x0040	I2C warning
 		  0x0080	Boot problem
+		  0x0100	Temperature sensing fault
+		  0x0200	One or more (soft) power switches are "off"
 		  0x4000	Highlighted
 		  0x8000	USER button is pressed (for development)
 	F0	PWM setting (in percent) for Left or rear fan.
-	F1	Right or front fan;
+	F1	Right or front fan.
 	FW	Firmware data. Seconds since the Unix epoch.
 	G0	Generation interval of the board in slot 0.
 	G1	Likewise, for board 1.
@@ -1459,6 +1510,9 @@ mine/1/bad-channels
 	N0	Serial number of the board in slot 0, the empty string if there
 		is no board in slot 0.
 	N1	Likewise, for board 1.
+	P0	Power input (12 V, from the PSU) to the hashboard in slot 0.
+		(Not including fan and controller power.)
+	P1	Likewise, for slot 1.
 	PA	IPv4 address of the pool, as single hexadecimal number with 0x.
 	PP	Port number of the pool.
 	R0	Board reset count, slot 0.
