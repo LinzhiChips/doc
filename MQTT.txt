@@ -50,7 +50,8 @@ or in the file cc-by-legalcode.txt
 
 /sys/clear-shutdown
 	Write anything to clear all pending power, thermal, or I2C shutdowns.
-	This also clears card (uSD) warnings and boot problem warnings.
+	This also clears card (uSD) and I2C warnings, and boot problem
+	warnings.
 
 	Writer:	browser, coord
 	Reader:	browser, coord, crewd
