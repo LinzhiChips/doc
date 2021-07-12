@@ -1079,7 +1079,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 
 	Writer:	mined
 	Reader:	browser
-	QoS:	1 (best effort)
+	QoS:	1 (at least once)
 	Retain:	yes
 
 /mine/0/statistics
@@ -1142,7 +1142,9 @@ Access to all the topics, except for /account/user/USER/chpw and
 	L	Active channels. Channels may be disabled through configuration
 		or when link bring-up fails.
 	F	Logic frequency, in Hz.
-	G	Task generation interval, in logic clock cycles.
+	G	Task generation interval, in logic clock cycles. (This is the
+		configured interval. When zombie-mining, the actual interval is
+		in /mine/+/zombie-mining.)
 	S	SerDes speed, in Mbps.
 
 	Items may be absent. E.g., the number of active channels is only
@@ -1150,8 +1152,36 @@ Access to all the topics, except for /account/user/USER/chpw and
 
 	Writer:	mined
 	Reader:	browser
-	QoS:	0 (best effort)
+	QoS:	1 (at least once)
 	Retain:	yes
+
+
+/mine/0/zombie-mining
+/mine/1/zombie-mining
+	Per-board zombie-mining information. If the respective slot is empty or
+	zombie-mining is not used, the value of /mine/+/zombie-mining is "-".
+
+	If a board is present and zombie-mining is in use, this is a
+	space-separated list of tag:value items, where the tag is a single
+	upper-case letter and the value is a decimal number.
+
+	Tag	Description
+	---	---------------------------------------------------------------
+	C	Zombie-mode compensation, in percent.
+	E	Uncompensated theoretical efficiency (eta).
+	G	Task generation interval, after zombie-mining compensation.
+	M	Available memory divided by DAG lines.
+	W	Work when zombie-mining (uncompensated) divided by work in
+		normal operation.
+
+	Zombie-mode compensation and task generation interval are integers,
+	all other values are floating-point numbers.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
 
 mine/0/bad-channels
 mine/1/bad-channels
@@ -1159,6 +1189,16 @@ mine/1/bad-channels
 	channel is identified by the number of the sending die, a dash, and the
 	number of the receiving die. If there were no bad channels, a "-" is
 	sent.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/0/dag-lines
+/mine/1/dag-lines
+	The number of DAG lines (128 bytes each) the current epoch uses, a
+	space, and the total number of DAG lines available (without overlaps).
 
 	Writer:	mined
 	Reader:	browser
