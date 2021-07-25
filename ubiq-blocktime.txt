@@ -1,0 +1,145 @@
+Possible nonce counter overflow with very long block times on Ubiq
+==================================================================
+
+The 40-bit nonce counter may overflow when block times are very long, which
+can occur when mining Ubiq. This causes the hardware of the Linzhi Phoenix
+miner to produce only invalid results (which are then detected and removed
+by software) until the pool sends the next job. We discuss ways to mitigate
+this problem.
+
+
+Nonce structure
+---------------
+
+The miner hardware has a 40-bit free-running nonce counter, and 24 (or more)
+nonce bits set through configuration. 40 bits are sufficient for about
+340-350 seconds of mining on a fast miner (if both boards mine the same job).
+When the nonce counter overflows, the miner continues, but produces only
+incorrect nonces until the next job resets the counter.
+
+A pool can set a number of extranonce bytes. Typical numbers are 0, 2, and 3
+bytes. The extranonce bytes define the upper bits of the nonce. The extranonce
+is unique per miner session at the pool.
+
+If the extranonce is less than 3 bytes, our mining daemon (mined) fills the
+remaining preloaded bits with random data.
+
+To separate nonce spaces searched by boards in the same miner, the lowest bit
+of the nonce is set to the slot number, and the counter increments in steps
+of two. We use this "slot bit" also in cases where no such separation is
+needed, e.g., if a miner has only one board installed.
+
+In the current implementation, a nonce therefore looks like this:
+
+  | extranonce | random | counter | slot |
+|           24          |   39    |  1   |
+
+Note that this issue only occurs if the pool does not generate a new mining
+job (for a new block or with a new extranonce) before the counter overflows.
+
+
+Extranonce sizes
+----------------
+
+On 2021-07-23, the pools we currently use for Ubiq mining have the following
+extranonce sizes:
+
+Crazypool	3 bytes
+MaxHash		0 bytes (uses Etherproxy protocol)
+Solopool	2 bytes
+Ubiqpool	3 bytes
+
+
+Ubiq block time
+---------------
+
+Nominal block time on Ubiq is 88 seconds, which is much longer than for other
+coins. Assuming block times follow an exponential distribution, the probability
+for a block time to exceed the 340 seconds available on our miners, is roughly
+
+e^(-340 / 88) = 2.1%
+
+If we had just one more bit, the probability would decrease to
+
+e(-340 * 2 / 88) = 0.04%
+
+Anything below 1% can be considered insignificant since miners will produce
+(and discard) a few invalid nonce as part of their normal operation.
+
+
+One more bit
+------------
+
+There are a number of places where we could find that extra bit:
+
+a) if a miner is operating only a single board, no bit to separate slots
+   is needed.
+
+b) if separate mining daemons are used (SEPARATE_MINED), then each obtains
+   its own extranonce from the pool and no "slot bit" is needed.
+
+c) if the pool sends no extranonce or if it is shorter than 24 bits, we could
+   use one of the random bits the miner adds for slot separation.
+
+There is one case where we have no easily available bit: if a miner has two
+boards, both mining, operated by a single mined, and the pool sends 24 bits
+of extranonce.
+
+
+Implementation
+--------------
+
+Below, we outline the planned implementation, and discuss the case that is
+left to be resolved.
+
+
+One board per mining daemon
+- - - - - - - - - - - - - -
+
+If we only allocate a "slot bit" when a single mined controls two boards,
+then we gain one extra bit in cases a) and b).
+
+This changes the nonce structure to:
+
+  | extranonce | random | counter |
+  |         24          |   40    |
+
+This benefits all pools, but only if the miner is operating in such a
+non-standard configuration.
+
+
+Two boards, single mined, less than 3 extranonce bytes
+- - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Case c) is more difficult to implement, because the random padding is
+currently calculated independently for each board. An easy way to avoid
+collisions is to pick one bit, e.g., the lowest, of the random pad as the
+"slot bit", and keep the rest of the random padding as before.
+
+This changes the nonce structure to:
+
+  | extranonce | random | slot | counter |
+  |         23          |  1   |   40    |
+
+Of the pools we currently use with Ubiq, this benefits MaxHash and
+Solopool.
+
+
+Two boards, single mined, 3 extranonce bytes
+- - - - - - - - - - - - - - - - - - - - - -
+
+Crazypool and Ubiqpool will not benefit from the c) improvement, since
+they leave no room for the miner to add random padding. (Which normally
+is desirable, since it gives the pool more flexibility for avoiding
+collisions among miners.)
+
+Given that the Nicehash-1.0.0 stratum protocol does not provide a mechanism
+for requesting a new job (other than sending a new mining.subscribe, which
+may require closing and re-opening the connection to the pool, plus the pool
+actually assigning a new unique extranone in this case), this issue needs
+to be addressed by the pool, e.g., by issuing a new job if the time between
+blocks gets very long, or by reducing the size of the extranonce.
+
+Crazypool has implemented a 340 seconds timeout after which the pool sets a
+new extranonce. Ubiqpool has indicated that it will reduce the extranonce
+from 3 to 2 bytes.
