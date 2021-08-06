@@ -193,8 +193,12 @@ or in the file cc-by-legalcode.txt
 
 /sys/ignore0
 /sys/ignore1
-	1 if the board is set to "ignore" (no mining is attempted), 0 if the
-	board is available for mining.
+	This is an integer that defines whether and how a board is ignored:
+
+	0  the board is available for normal operation.
+	1  no mining is attempted, but temperature and power are still
+	   monitored, and faults are processed normally.
+	2  neither mining nor monitoring are attempted.
 
 	Writer:	boot process
 	Reader:	browser
@@ -616,6 +620,16 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	Reader: browser
 	QoS:	1 (at least once)
 	Retain: no
+
+/fw/checksums-version
+	Version number of the DAG checksum files. This is an integer, or a
+	dash (-) if no version information is available (e.g., if the checksum
+	files are absent or could not be properly installed.)
+
+	Writer: boot process
+	Reader: browser
+	QoS:	1 (at least once)
+	Retain: yes
 
 
 /card - Memmory card
@@ -1082,6 +1096,14 @@ Access to all the topics, except for /account/user/USER/chpw and
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/mine/pool/extranonce
+	The number of extranonce bits. Zero if the pool sent no extranonce.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
 /mine/0/statistics
 /mine/1/statistics
 	Per-board mining statistics. /mine/0/statistics is for the board in
@@ -1505,6 +1527,8 @@ mine/1/bad-channels
 	B0	Number of bad channels on the board in slot 0. (255 for >= 255
 		bad channels.)
 	B1	Likewise, for board 1.
+	CV	Checksum files version. 0 if miner did not report this, 0xff if
+		the miner does not know the checksum files version.
 	D0	Number of active dies on the board in slot 0.
 	D1	Likewise, for board 1.
 	DR	Rig name in the current destination URI (up to eight
@@ -1601,6 +1625,11 @@ mine/1/bad-channels
 
 	- ecbt: run a pattern test on all available buses.
 
+	- dmesg: the last kernel messages
+
+	- i2cdetect: scan the I2C bus whose number (0, 2, 3, 4, or 5) is given
+	  as argument.
+
 	Write:	browser
 	Reader:	diagd
 	QoS:	2 (exactly once)
@@ -1609,6 +1638,8 @@ mine/1/bad-channels
 /diag/result/myip
 /diag/result/mtr
 /diag/result/disc
+/diag/result/dmesg
+/diag/result/i2cdetect
 	Results from diagnostics. There can be the following values:
 
 	- empty: no result is available yet
@@ -1679,7 +1710,7 @@ mine/1/bad-channels
 /report/get
 	To request sending a report (on /report/INDEX/zip), write the index of
 	the report on /report/get. If no report with this index exists, the
-	requiest is ignored.
+	request is ignored.
 
 	Write:	browser
 	Reader:	reportd
