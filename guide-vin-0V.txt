@@ -1,0 +1,49 @@
+Technical guide: some but not all input voltages show 0.000 V
+=============================================================
+
+When examining Power > Telemetry, e.g., after a board has generated a DCDC
+shutdown and/or has failed to power up, one may see the following pattern:
+
+- "Power in" of one or more channels shows exactly 0.000 V,
+
+- the temperature(s) of the corresponding channel(s) are indicated as 0 C,
+
+- the remaining channel(s) look(s) normal.
+
+The register dump in Power > Dump may show MEM for STATUS_CML (possibly
+among other flags.)
+
+
+Probable cause
+--------------
+
+The underlying issue seems to be an I2C communication fault of one or more
+of the voltage regulators on the hashboard, which causes the regulator to
+enter this state.
+
+
+Manual recovery
+---------------
+
+This is a "soft" problem. Power-cycling the power supply, and thus the
+regulator, normally resolves the problem.
+
+
+Possible prevention
+-------------------
+
+This type of problem only appeared with sufficient frequency to be noticed
+after we used frequent polling of the power status of the regulators, by
+setting Configuration > Controller > General > POWER_POLL_INTERVAL to a low
+value.
+
+We expect that disabling power polling (by setting the interval to 0) or
+choosing a large value (e.g., 300 seconds) should greatly reduce the
+frequency of such faults, and possibly avoid them entirely.
+
+
+Automatic recovery
+------------------
+
+The normal "clear fault" procedure does not work in this case. We are
+currently investigating alternative ways to clear this fault.
