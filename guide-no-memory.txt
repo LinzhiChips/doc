@@ -1,0 +1,69 @@
+Technical guide: overcoming an out-of-memory condition
+======================================================
+
+A miner may run out of memory. We observed this mainly when trying to update
+the firmware, and after the miner has been mining for a while.
+
+
+Symptoms
+--------
+
+Diagnostics > dmesg (in firmware >= fw-test-20210806-1024) will show various
+statistics and complaints, including a line like this towards the end:
+
+Out of memory: Killed process ... (...) total-vm:...
+
+If the out-of-memory condition is triggered by an attempted firmware update,
+no response to the update attempt is shown on System > Firmware.
+
+Furthermore, the firmware update daemon (fwupdated) will have died. This is
+indicated with "Stopped" in System > Daemons > fwupdated
+
+
+Cause
+-----
+
+The main reason for running out of memory is a memory leak in the mining
+daemon. This is fixed in firmware versions >= fw-rd-20210828-0106
+
+
+Recovery (user interface)
+-------------------------
+
+To free memory on a miner that has experienced an out-of-memory condition, it
+is often sufficient to stop the mining daemon:
+
+- Click on System > Daemons > mined
+- Click on the "Stop" button below the log window that then opens
+
+Then restart the firmware update daemon:
+
+- System > Daemons > fwupdated
+- "Start"
+
+Alternatively, the miner can be rebooted. Since reboots are handled by
+fwupdated, it needs to be restarted first (see above). Then reboot with
+System > Firmware > Reboot
+
+If in the process of updating the firmware, you can then proceed as usual.
+
+If no reboot or update is planned, and mined is still stopped, restart it with
+System > Daemons > mined, then "Start".
+
+
+Recovery (script)
+-----------------
+
+If a large number of miners has run out of memory, or you want to make sure
+they're ready for a firmware update, first
+
+  git clone https://github.com/LinzhiChips/farm-tools.git
+
+and read the README. Make a list of miners that need to be recovered, then
+
+  ./bulk-config /daemon/mined/stop=1 miners.list
+  ./bulk-config /daemon/fwupdated/start=1 miners.list
+
+to make the update:
+
+  ./push-update fw-...tar miners.list

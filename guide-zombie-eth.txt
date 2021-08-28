@@ -1,0 +1,68 @@
+Technical guide: preparing for zombie-mining (Ethereum)
+=======================================================
+
+Epoch 440 of Ethereum (ETH) is expected [1] to begin on 2021-09-09 at about
+08:00 UTC. Starting with epoch 440, the DAG will no longer fit in the memory
+of our miners.
+
+A mode called "zombie-mining" will then activate, which will allow the
+miners to continue mining, but at a reduced hashrate. The miners will get
+slower with every epoch, until it will be more profitable to mine other coins.
+E.g., regularly mining Ethereum Classic (ETC) should yield better profits than
+zombie-mining ETH after the end of September.
+
+Technical details of zombie-mining can be found in [2].
+
+
+Firmware for zombie-mining
+--------------------------
+
+Zombie mining is supported in firmware >= fw-rd-20210808-0031
+Using a version >= fw-rd-20210828-0106 is recommended.
+
+Miners mining ETC, UBQ, or other coins will not need support for zombie-mining
+until at least the year 2022 (most coins much later, if there are no changes
+to algorithm, block rate, etc.)
+
+
+Checksum files
+--------------
+
+Firmware >= fw-rd-20210808-0031 also includes additional checksum files for
+ETH. Checksum files are used to validate pre-calculated DAGs stored on the uSD
+card (which takes less than 15 minutes).
+
+If there is no checksum file for the DAG of a given epoch, the DAG is
+re-calculated, which takes several hours, 
+
+The update process for checksum files consists of two steps:
+
+1) Installation of a firmware that supports updating checksum files, and
+
+2) installation of a firmware that includes the new checksum files.
+
+If upgrading through the Web UI or MQTT, this typically requires the same
+firmware to be installed twice: first to obtain the checksum file installation
+capability, and the second time to make use of it and install the checksum
+files.
+
+For the first step (if necessary), either the fw-...-full or the non-full
+version can be used. For the second step, only the fw-...-full version is
+suitable (the non-full version does not contain any checksum files.)
+
+If extracting the firmware fw-...-full.tar file directly onto the uSD card, no
+second step is required.
+
+The version of the checksum files is shown in System > Firmware > Checksums
+version, under "PL". The correct version is >= 2. If no checksums version is
+shown, then the firmware is too old and needs to be updated.
+
+The checksums version is also shown in the crew, column "Checksums".
+
+Note that, if upgrading from a firmware version < fw-rd-20210828-0106, working
+around the memory leak discussed in [3] may be necessary.
+
+
+[1] https://minerstat.com/dag-size-calculator
+[2] https://github.com/LinzhiChips/doc/blob/master/zombie-mining.pdf
+[3] https://github.com/LinzhiChips/doc/blob/master/guide-no-memory.txt
