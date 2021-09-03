@@ -1527,7 +1527,7 @@ mine/1/bad-channels
 	B0	Number of bad channels on the board in slot 0. (255 for >= 255
 		bad channels.)
 	B1	Likewise, for board 1.
-	CV	Checksum files version. 0 if miner did not report this, 0xff if
+	CV	Checksum files version. 0 if miner did not report this, -1 if
 		the miner does not know the checksum files version.
 	D0	Number of active dies on the board in slot 0.
 	D1	Likewise, for board 1.
