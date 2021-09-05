@@ -1,9 +1,9 @@
 Technical guide: preparing for zombie-mining (Ethereum)
 =======================================================
 
-Epoch 440 of Ethereum (ETH) is expected [1] to begin on 2021-09-09 at about
-08:00 UTC. Starting with epoch 440, the DAG will no longer fit in the memory
-of our miners.
+Epoch 440 of Ethereum (ETH) is expected [1] to begin on 2021-09-09 UTC or
+2021-09-10 UTC. Starting with epoch 440, the DAG will no longer fit in the
+memory of our miners.
 
 A mode called "zombie-mining" will then activate, which will allow the
 miners to continue mining, but at a reduced hashrate. The miners will get
@@ -60,7 +60,8 @@ shown, then the firmware is too old and needs to be updated.
 The checksums version is also shown in the crew, column "Checksums".
 
 Note that, if upgrading from a firmware version < fw-rd-20210828-0106, working
-around the memory leak discussed in [3] may be necessary.
+around the memory leak discussed in [3] may be necessary before the upgrade can
+be performed.
 
 
 [1] https://minerstat.com/dag-size-calculator
