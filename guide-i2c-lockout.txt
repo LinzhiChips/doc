@@ -1,0 +1,110 @@
+Technical guide: how to suppress faulty slots and I2C lockouts
+==============================================================
+
+On some (fortunately, very rare) circumstances, a miner may receive faults
+(thermal shutdown, DCDC shutdown, I2C shutdown) from a defective hashboard,
+even if the board is not being used.
+
+If removing the board is not an option, or in case the faults continue
+even with no board present in the respective slot, the slot can be "banned".
+
+This guide describes the basic procedure for this, and addresses a
+particular complication that can arise in some cases.
+
+Note that a board that shows the symptoms described in this guide is likely
+to need repair and/or replacement. "Banning" it is merely a palliative
+measure that helps to keep the miner operational until proper maintenance
+can be performed.
+
+
+Banning a board
+---------------
+
+With firmware >= fw-test-20210806-1024,
+Configuration > Slot n > General > IGNORE has the option to "ban" a board.
+This not only disables mining on the board, but it also disables all
+monitoring and fault detection.
+
+The IGNORE setting  is stored in the configuration EEPROM of the respective
+board.
+
+To ban a board, simply set IGNORE to "ban", then reboot via
+System > Firmware > Reboot
+
+After the reboot, the board will still show on the status page, marked as
+"BANNED".
+
+
+Banning an absent board
+-----------------------
+
+If a slot is empty but we still receive faults from it, the slot can also
+be disabled by a setting in the controller EEPROM.
+
+This option is not available through the Web user interface and needs to be
+performed from a shell on the miner. Shell access vis SSH can be set up in
+Configuration > Account. A reboot is required after creating/changing an
+account.
+
+From the shell, issue the following command:
+
+~# cfgdb -w SLOTn_IGNORE=ban
+
+where n is the number of the slot, e.g., SLOT0_IGNORE. Then reboot the miner.
+
+
+Banning an unconfigurable board
+-------------------------------
+
+If the configuration EEPROM of the board is defective or if the I2C bus has
+issues that prevent access to the EEPROM, the configuration change described
+in "Banning a board" may fail.
+
+Such a failure is not indicated in the user interface (i.e., everything
+looks normal), but the setting does not change and the previous value will
+appear after a reboot.
+
+If such a failure occurs, the configuration daemon will print an error that
+can be seen in System > Daemons > configd
+
+Note that this is a very rare problem. You only need to worry about this if
+you have evidence that configuration changes are not stored.
+
+If this problem occurs, treat this like an absent board (see the previous
+section).
+
+
+Overridden override
+-------------------
+
+In firmware <= fw-rd-20210808-0031, the following condition can occur:
+
+- there is an I2C failure where accessing a device other than the board's
+  EEPROM causes the bus to hang. This hang cannot be resolved by an I2C
+  bus reset. It is resolved by a reboot, but returns when the problem
+  device is accessed again.
+
+- the board's EEPROM can still be read.
+
+- the IGNORE variable of the board is set, to a value other than "ban".
+  E.g., IGNORE=y (which is the "IGNORE" setting.)
+
+- the firmware version is <= fw-rd-20210808-003
+
+- the procedure described in "Banning an absent board" has been performed. 
+
+The expected outcome is that the board would be "BANNED". Instead, it shows
+up as "IGNORE", and we still try to obtain telemetry, which can then cause
+further faults.
+
+What happens is, in this sequence
+
+1) the controller EEPROM is read, setting SLOTn_IGNORE=ban
+2) the board's EEPROM is read, and since it contains a setting for IGNORE,
+   too, this overrides the previous setting. E.g., we now have SLOTn_IGNORE=y
+3) temperature and power monitoring are enabled according to the setting at
+   this point, which is now SLOTn_IGNORE=y, not the intended SLOTn_IGNORE=ban
+
+The easiest way to fix this is to install firmware >= fw-rd-20210828-0106
+Starting with this version, a "ban" setting also disables reading the board's
+EEPROM.
