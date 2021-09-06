@@ -1625,10 +1625,25 @@ mine/1/bad-channels
 
 	- ecbt: run a pattern test on all available buses.
 
+	- ecbclk: check the propagation of the ECB bus clock on all available
+	  buses.
+
 	- dmesg: the last kernel messages
 
 	- i2cdetect: scan the I2C bus whose number (0, 2, 3, 4, or 5) is given
 	  as argument.
+
+	- grate: measure the frequency of the logic clocks of all dies. There
+	  are two arguments, separated by a space:
+
+	  - the slot number, 0 or 1,
+
+	  - type of clock to test, "ref" for the reference clock (PLL input)
+	    and "pll" for the PLL output clock.
+
+	- symrate: measure the symbol rate of the SerDes modules of all dies
+	  (and show the result in bits per second). There is one argument, the
+	  slot number.
 
 	Write:	browser
 	Reader:	diagd
@@ -1638,8 +1653,12 @@ mine/1/bad-channels
 /diag/result/myip
 /diag/result/mtr
 /diag/result/disc
+/diag/result/ecbt
+/diag/result/ecbclk
 /diag/result/dmesg
 /diag/result/i2cdetect
+/diag/result/grate
+/diag/result/symrate
 	Results from diagnostics. There can be the following values:
 
 	- empty: no result is available yet
