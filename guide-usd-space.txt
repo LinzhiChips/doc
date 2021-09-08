@@ -1,0 +1,93 @@
+Technical guide: uSD space for the DAG cache
+============================================
+
+A miner may run out of space and then fail to cache multiple DAG files. This
+guide describes the symptoms, discusses how space is allocated, and provides
+work-arounds for space shortage.
+
+
+Symptoms
+--------
+
+When the miner runs low on uSD space, it reduces the number of DAG files it
+caches. If the available space is not sufficient for two or more files, the
+miner is unable to pre-compute DAGs for future epochs, and needs to compute
+the next DAG at the epoch change, delaying mining in the new epoch by several
+hours.
+
+
+Space allocation
+----------------
+
+Firmware versions >= fw-rd-20210107-0600 calculate the available space for
+DAGs as follows: the total capacity of the uSD card minus 6 GB (where 1 GB
+is 2^30 bytes).
+
+The 6 GB are reserved for:
+- the firmware,
+- firmware updates (during an update, both the old and the new firmware are
+  temporarily stored on the card),
+- the checksum files,
+- cached data, such as MBIST (memory test) results,
+- reports,
+- any files needed for customization of the boot/setup process, and
+- anything we may add in the future.
+
+
+32 GB cards
+-----------
+
+On 32 GB cards (or larger), the above space allocation leaves plenty of room,
+and running out of space should not be a concern.
+
+
+16 GB cards
+-----------
+
+A card with a nominal capacity of 16 GB may have 15549952 kilobytes of actually
+usable capacity. Minus the reserve of 6297600 kB, this leaves 9252352 kB, or
+room for two DAGs of 4.412 GB each. The usable capacity may vary among cards.
+
+Ethereum DAGs have grown beyond this limit and are currently around 4.43 GB.
+
+The DAGs of other coins mineable by our miners are smaller, and there should
+be sufficient room to store the DAGs of multiple epochs.
+
+
+Moving to a larger card
+-----------------------
+
+One way to solve the space limitation is to replace 16 GB cards with larger
+cards. To do so, extract fw-...-full.tar to the root directory of an empty
+VFAT-formatted uSD card, then replace the card and press RESET.
+
+
+Reducing the reservation
+------------------------
+
+If there is unused space on a 16 GB card, the reservation can be reduced
+accordingly. With firmware >= fw-test-20210907-1735, this can be done by
+setting Configuration > Controller > Mining > RESERVED_SPACE to a value lower
+than 6G (bytes), e.g., to 3 GB. Then either reboot, or restart dagd (1).
+
+To calculate how much space is currently occupied by non-DAG data, SSH (2) to
+the miner, then
+
+~# cd /data
+~# /data# du -s .
+~# /data# du -s dag
+
+The difference between the first and the second number is the space occupied
+by firmware, etc., in kilobytes. This, plus a margin of 100 MB for temporary
+files created during firmware updates, would be the absolute minimum space
+that must be reserved.
+
+If the occupied space is larger than 2 GB or if the total card capacity seems
+very low, the card should be reformatted/replaced, and new firmware installed
+on it. (See "Moving to a larger card".)
+
+(1) To restart dagd, click on System > Daemons > dagd, then on "Stop" below
+    the log window that opens, then finally "Start" and "Close".
+
+(2) Shell access vis SSH can be set up in Configuration > Account. A reboot is
+    required after creating/changing an account.
