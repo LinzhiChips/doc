@@ -989,6 +989,8 @@ Access to all the topics, except for /account/user/USER/chpw and
 ------------------------
 
 /mine/epoch
+/mine/0/epoch
+/mine/1/epoch
 	This is a list of space-separated elements:
 
 	1) The (decimal) number of the epoch currently being mined.
@@ -1042,7 +1044,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	---	-----------------------------------------------------------
 	F	SerDes firmware upload progress, a floating-point number
 		from 0 to 1.
-	D	DAG upload progress, also 0 to 1.
+	D	DAG upload progress, also from 0 to 1.
 	M	Mining indication, 0 if the board is not mining, 1 if it is.
 
 	Writer:	mined
@@ -1051,7 +1053,13 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	yes
 	
 /mine/pool/state
-	Pool connection state. The following space-separated fields:
+/mine/0/pool/state
+/mine/1/pool/state
+	Pool connection state. If the mining daemon controls two boards, the
+	common state is sent on /mine/pool/state, else the per-board state is
+	sent on the respective /mine/SLOT/pool/state
+
+	The value is a string with the following space-separated fields:
 	- The pool's host name, followed by a colon and the decimal port
 	  number.
 	- The pool's IPv4 address, as big-endian hexadecimal number with
@@ -1066,9 +1074,15 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	yes
 	
 /mine/pool/statistics
-	Per-pool mining statistics. This is a space-separated list of tag:value
-	items, where the tag is a single upper-case letter and the value is a
-	decimal number.
+/mine/0/pool/statistics
+/mine/1/pool/statistics
+	Per-pool mining statistics. If the mining daemon controls two boards,
+	the statistics for the single pool session are sent on
+	/mine/pool/statistics, else the statistics of each session are sent on
+	the respective /mine/SLOT/pool/statistics
+
+	This is a space-separated list of tag:value items, where the tag is a
+	single upper-case letter and the value is a decimal number.
 
 	Tag	Description
 	---	-----------------------------------------------------------
@@ -1231,6 +1245,10 @@ mine/1/bad-channels
 	If anything is received on this topic, the mining daemon has exited.
 	(This is the "last will" message of mined.)
 
+	If the message is "0" or "1", the mining daemon operating the
+	respective board has exited. Any other value indicates that a mining
+	daemon operating both boards has exited.
+
 	All instantaneous mining information is no longer valid and should
 	be reset.
 
@@ -1277,7 +1295,7 @@ mine/1/bad-channels
 /mine/1/reset-action
 	Each time a board is reset, the action taken (the type of reset) is
 	written to /mine/+/reset. There are currently the following reset
-	action:
+	actions:
 
 	- "quick": reset SerDes, without reloading firmware
 	- "serdes": reset SerDes and reload firmware
@@ -1349,9 +1367,13 @@ mine/1/bad-channels
 	QoS:	1 (at least once)
 	Retain:	no
 
-/mine/net-perf
-	Network performance statistics. This is a space-separated list of
-	decimal numbers. There are currently two numbers:
+/mine/0/net-perf
+/mine/1/net-perf
+	Network performance statistics. The slot number is 0 if the mining
+	daemon uses slot 0, 1 if it only uses slot 1.
+
+	This is a space-separated list of decimal numbers. There are currently
+	two numbers:
 
 	- the second is the RTT estimate from TCP,
 	- the third is the total number of TCP retransmissions.
@@ -1645,6 +1667,9 @@ mine/1/bad-channels
 	  (and show the result in bits per second). There is one argument, the
 	  slot number.
 
+	- dabs: collect and return fingerprints from all dies on a board.
+	  There is one argument, the slot number.
+
 	Write:	browser
 	Reader:	diagd
 	QoS:	2 (exactly once)
@@ -1659,6 +1684,7 @@ mine/1/bad-channels
 /diag/result/i2cdetect
 /diag/result/grate
 /diag/result/symrate
+/diag/result/dabs
 	Results from diagnostics. There can be the following values:
 
 	- empty: no result is available yet
