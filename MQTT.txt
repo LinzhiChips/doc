@@ -1670,6 +1670,10 @@ mine/1/bad-channels
 	- dabs: collect and return fingerprints from all dies on a board.
 	  There is one argument, the slot number.
 
+	- cfgdb-u: show the space utilization of configuration EEPROMs. There
+	  is one optional argument, the slot number. If the argument is absent,
+	  the configuration EEPROM of the controller is used.
+
 	Write:	browser
 	Reader:	diagd
 	QoS:	2 (exactly once)
@@ -1685,6 +1689,7 @@ mine/1/bad-channels
 /diag/result/grate
 /diag/result/symrate
 /diag/result/dabs
+/diag/result/cfgdb-u
 	Results from diagnostics. There can be the following values:
 
 	- empty: no result is available yet
