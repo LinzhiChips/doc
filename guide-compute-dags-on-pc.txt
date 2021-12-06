@@ -1,0 +1,67 @@
+Technical guide: computing DAGs on a PC
+=======================================
+
+DAG computation on a Phoenix is fairly slow, taking several hours. A PC can
+do it in much less time, and the resulting files can then be copied to the
+miner. This guide explains how to do this with a Linux PC. (May work with
+other types of Unix as well.)
+
+
+Setting up the Linux PC
+-----------------------
+
+- Obtain the code for the DAG daemon and the libraries it uses:
+
+  git clone https://github.com/LinzhiChips/libcommon.git
+  git clone https://github.com/LinzhiChips/libdag.git
+  git clone https://github.com/LinzhiChips/dagd.git
+
+- Build libraries and daemon:
+
+  make -C libcommon
+  make -C libdag
+  make -C dagd
+
+
+Generating DAG files
+--------------------
+
+Choose which DAG algorithm to use (etchash, ethash, or ubqhash), and which
+epochs, then run:
+
+  dagd/precompute-dags algorithm first-epoch last-epoch
+
+For example,
+
+  dagd/precompute-dags etchash 240 240
+
+This example creates a DAG file called etchash-240.dag, which can then be
+used on the miner. If a DAG is larger than 4 GB, a second file
+ALGORITHM-NNN.dag-1 is made, which also needs to be copied to the miner.
+
+As a reference, computing the epoch 240 etchash DAG on an i7-7700K takes
+about 18 minutes, over 4.5 hours on a Phoenix.
+
+
+Uploading the DAG to the miner
+------------------------------
+
+- If not done already, set up SSH access to the miner in
+  Configuration > Account (needs a reboot to become effective)
+
+- Stop dagd (System > Daemons > dagd, Stop)
+
+- Run
+
+  scp etchash-*.dag* miner:/data
+
+- Start dagd
+
+
+Copying the DAG directly to a uSD card
+--------------------------------------
+
+- Mount the miner's uSD card on your Linux PC and copy the *.dag* files to
+  the dag/ directory of the card.
+
+- Insert the uSD card into the miner and reboot.
