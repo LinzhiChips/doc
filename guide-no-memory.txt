@@ -1,8 +1,9 @@
 Technical guide: overcoming an out-of-memory condition
 ======================================================
 
-A miner may run out of memory. We observed this mainly when trying to update
-the firmware, and after the miner has been mining for a while.
+A miner may run out of memory (controller RAM, not DAG memory). We observed
+this mainly when trying to update the firmware, and after the miner has been
+mining for a while.
 
 
 Symptoms
@@ -19,6 +20,14 @@ no response to the update attempt is shown on System > Firmware.
 Furthermore, the firmware update daemon (fwupdated) will have died. This is
 indicated with "Stopped" in System > Daemons > fwupdated
 
+Further symptoms may include:
+
+- The MQTT broker (mosquitto) is killed, interrupting all monitoring and
+  control over MQTT (and the Web UI.) SSH, if enabled, still works.
+
+- The crew daemon (crewd) is killed. The miner will then show as "SILENT" in
+  the crew.
+
 
 Cause
 -----
@@ -26,12 +35,28 @@ Cause
 The main reason for running out of memory is a memory leak in the mining
 daemon. This is fixed in firmware versions >= fw-rd-20210828-0106
 
+With fw-rd-20211004-0038, we also observed miners running out of memory when
+attempting a firmware update. The cause for this is still under investigation.
+
+
+Prevention
+----------
+
+Rebooting a miner shortly before performing a firmware update seems to be a
+reliable way to avoid out-of-memory problems. A group of miners can be rebooted
+with the bulk-config script from farm-tools:
+
+  ./bulk-config -w 60 /fw/update=reboot miners.list
+
+Restarting the mining daemon, as described in the recovery sections below,
+should also prevent out-of-memory problems.
+
 
 Recovery (user interface)
 -------------------------
 
-To free memory on a miner that has experienced an out-of-memory condition, it
-is often sufficient to stop the mining daemon:
+To free memory on a miner that has experienced an out-of-memory condition but
+is still responsive, it is often sufficient to stop the mining daemon:
 
 - Click on System > Daemons > mined
 - Click on the "Stop" button below the log window that then opens
@@ -67,3 +92,19 @@ and read the README. Make a list of miners that need to be recovered, then
 to make the update:
 
   ./push-update fw-...tar miners.list
+
+
+Recovery (if all else fails)
+----------------------------
+
+If a miner no longer responds to MQTT but still accepts SSH, running
+/sbin/reboot -f
+will restore normal operation.
+
+If an out-of-memory condition has rendered a miner completely unresponsive,
+and also SSH is not available, pressing the reset button will bring it back to
+life. (Unless there are other issues, not related to running out of memory.)
+
+In case an out-of-memory problem keeps on preventing firmware updates, the
+firmware can also be updated by using a PC and extracting the fw-...tar on the
+uSD card of the miner, or by extracting fw-...-full.tar on a fresh uSD card.
