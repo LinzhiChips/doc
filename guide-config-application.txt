@@ -1,0 +1,76 @@
+Technical guide: when do configuration changes become effective ?
+=================================================================
+
+Configuration changes (Configuration > ...) often require additional actions
+before they become effective. Below, we list all configuration variables, and
+the action needed to apply the changes.
+
+If a change becomes effective when some daemon process is restarted, a reboot
+can be used as well.
+
+Controller
+    General
+	NAME			Reboot
+	BANNER			Reboot
+	DARK_TIMEOUT		Reboot
+	SECURE			Reboot
+	SWITCHES_ON_BOOT	Reboot
+	TRIP_MASTER		None
+	POWER_POLL_INTERVAL	Reboot
+	FAN_PROFILE		Reboot
+	KEEP_FSCK		Reboot
+    Network
+	DHCP			Reboot
+	DHCP_NAME		Reboot
+	IP			Reboot
+	NETMASK			Reboot
+	GW			Reboot
+	DNS			Reboot
+	NTP			Reboot
+	ECDSA_HOST_KEY		Reboot
+    Crew
+	CREW			Restart crewd
+	CREW_API		Restart crewd
+	CREW_API_PORT		Restart crewd
+	CREW_PORT		Restart crewd
+	CREW_MCAST_ADDR		Restart crewd
+	CREW_SHARED_SECRET	None
+    Reports
+	REPORTS_MAX		None
+	REPORTS_ROTATE		None
+	REPORT_MINED_CRASH	None
+	REPORT_DAGD_CRASH	None
+	REPORT_CREWD_CRASH	None
+    Mining
+	NONCE_OFFSET		Restart mined
+	SUB_EXTRANONCE		Restart mined
+	SEPARATE_MINED		Reboot
+	RESERVED_SPACE		Restart dagd
+Slot N
+    General
+	NAME			Reboot
+	BANNER			Reboot
+	IGNORE			Reboot
+	TWARN			Reboot
+    Tuning
+	SERDES_RATE		Restart mined
+	GEN_RATIO		Restart mined
+	ZOMBIE_COMPENSATION	Restart mined (1)
+	VIN_UV			Reboot
+	VDD			Reboot
+	VAA			Reboot
+	VIO			Reboot
+    Disable
+	SERDES_TRIM		Restart mined
+	SKIP_DIES		Restart mined
+	SKIP_TCHAN		Restart mined
+Pool				None (2)
+Account (all changes)		Reboot
+
+(1) A change also becomes effective when the epoch changes, if switching to a
+    coin with a different DAG, or if the mining daemon resets the hashboards.
+
+(2) Destination changes may not have an immediate effect, e.g., if the mining
+    daemon is pausing after a connection problem. This can be expedited by
+    restarting the mining daemon(s) (mined, or mined0 and mined1,
+    respectively).
