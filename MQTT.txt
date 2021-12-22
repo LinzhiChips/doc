@@ -542,7 +542,7 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	QoS:	1 (at least once)
 	Retain:	yes
 
-/temp/pwm-snapshot
+/fan/pwm-snapshot
 	The PWM values reported before a thermal shutdown occurred. The this is
 	a space-separated list with the value for Right/front followed by the
 	value for Left/rear. If a value is not known, a dash it placed in its
@@ -1219,8 +1219,8 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	yes
 
 
-mine/0/bad-channels
-mine/1/bad-channels
+/mine/0/bad-channels
+/mine/1/bad-channels
 	A space-separated list of channels for which link bring-up failed. Each
 	channel is identified by the number of the sending die, a dash, and the
 	number of the receiving die. If there were no bad channels, a "-" is
