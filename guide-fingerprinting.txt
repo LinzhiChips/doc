@@ -1,0 +1,62 @@
+Technical guide: fingerprinting
+===============================
+
+Starting with firmware fw-rd-20211220-2243, fingerprints of individual ASICs
+can be obtained. This guide describes how to retrieve them.
+
+
+Fingerprints
+------------
+
+The fingerprints of all the dies of a hashboard can be obtained with
+Diagnostics > Fingerprints (stop the mining daemon first, preferably with
+Power > On/Off)
+
+
+Bulk collection of fingerprints
+-------------------------------
+
+The script bulk-fingerprints in https://github.com/LinzhiChips/farm-tools
+takes a list of miners from the command line or from a file, and then retrieves
+the fingerprints of the boards in all of them.
+
+Since the boards need to be power-cycled for this. bulk-fingerprints stops the
+mining daemons, and restarts them after collecting the fingerprints.
+
+Fingerprints are printed on standard output in the format
+board/die=fingerprint
+where "board" is the serial number of the respective hashboard, "die" is the
+die number (0 to 63), and "fingerprint" are the 256 hex digits of the
+fingerprint.
+
+Details on using bulk-fingerprints can be found in
+https://github.com/LinzhiChips/farm-tools/README
+
+
+Example
+-------
+
+- Install or update farm-tools:
+
+  git clone https://github.com/LinzhiChips/farm-tools.git
+
+  or
+
+  cd farm-tools
+  git pull
+  cd ..
+
+- Generate a list of miners (see sections "Machine lists" and "list-miners" in
+  https://github.com/LinzhiChips/farm-tools/blob/master/README)
+  We assume the file with the list of miners is called miners.list
+
+- Collect the fingerprints from all miners:
+
+  farm-tools/bulk-fingerprints miners.list >my.fingerprints
+
+
+Uses of fingerprints
+--------------------
+
+At Linzhi, we use fingerprints to identify and track individual chips, mainly
+during testing and manufacturing processes.
