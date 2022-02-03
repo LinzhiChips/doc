@@ -41,6 +41,7 @@ Controller
 	REPORT_MINED_CRASH	None
 	REPORT_DAGD_CRASH	None
 	REPORT_CREWD_CRASH	None
+	REPORT_OOM		None
     Mining
 	NONCE_OFFSET		Restart mined
 	SUB_EXTRANONCE		Restart mined
