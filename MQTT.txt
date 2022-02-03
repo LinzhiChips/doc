@@ -291,10 +291,9 @@ or in the file cc-by-legalcode.txt
 /sys/dcdc0/version
 /sys/dcdc1/version
 	The version of the DCDC daughterboard on the hashboard in the
-	respective slot. Either 1 or 2.
+	respective slot. Either 1, 2, or B3.
 
-	Nothing is published for boards that are absent. Note that versions
-	are currently integers but may become arbitrary strings in the future.
+	Nothing is published for boards that are absent.
 
 	Writer:	boot process
 	Reader:	TBD
