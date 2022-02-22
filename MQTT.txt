@@ -135,6 +135,14 @@ or in the file cc-by-legalcode.txt
 	QoS:	1 (at least once)
 	Retain: yes
 
+/sys/ram
+	Available controller RAM size, in bytes.
+
+	Writer:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain: yes
+
 /sys/pl-git
 	The first 32 bits of the git commit hash at which PL was built,
 	as 8-digit hex number with leading zeroes.
@@ -421,14 +429,16 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 
 /power/0/total_input
 /power/1/total_input
-	The total 12 V input power of the respective hashboard, in Watt.
+	The total 12 V input power of the respective hashboard, in Watt. This
+	number is an unsigned integer.
+
 	Note that this does not include:
-	- losses in the power supplies,
+	- losses in the (external) power supplies,
 	- power consumed by the fans,
 	- power consumed by the controller.
 
 	Writer:	pwrpolld
-	Reader:	TBA
+	Reader:	crewd
 	QoS:	1 (at most once)
 	Retain:	no
 
