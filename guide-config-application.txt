@@ -64,7 +64,7 @@ Slot N
     Disable
 	SERDES_TRIM		Restart mined
 	SKIP_DIES		Restart mined
-	SKIP_TCHAN		Restart mined
+	SKIP_TCHAN		Reboot
 Pool				None (2)
 Account (all changes)		Reboot
 
