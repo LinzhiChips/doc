@@ -308,6 +308,21 @@ or in the file cc-by-legalcode.txt
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/sys/machine-type
+	The miner's best guess what type of machine it is. Used to style the
+	header of the Web page. Currently assigned values:
+
+	Phoenix	Phoenix miner
+	Duck	Duck (experimental variant)
+	Test	Test system
+	Mix	Mixture of incompatible board types
+	-	Unknown
+
+	Write:	boot process
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
 
 /power - Power management and monitoring
 ----------------------------------------
