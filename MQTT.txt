@@ -103,7 +103,7 @@ or in the file cc-by-legalcode.txt
 	write to /sys/led/dark-mode resets the timeout, i.e., the LEDs are
 	turned on.
 
-	Write:	boot process
+	Writer:	boot process
 	Reader:	coord
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -318,7 +318,7 @@ or in the file cc-by-legalcode.txt
 	Mix	Mixture of incompatible board types
 	-	Unknown
 
-	Write:	boot process
+	Writer:	boot process
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -474,6 +474,50 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	Reader:	browser, coord
 	QoS:	1 (at least once)
 	Retain:	yes
+
+/power/on/ops
+	Values of the "ops switch", an additional control of the master switch,
+	for load management and similar taks.
+
+	The message consists three space-separated values:
+
+	- the ops value, a hexadecimal 32-bit integer with leading 0x,
+
+	- a bitmask of present bits, also a hexadecimal 32-bit integer,
+
+	- 0 or 1, indicating whether the ops switch is enabled. If this value
+	  is 0 (disabled), the master switch is not modified.
+
+	Each byte of the ops value is a bit set of eight individually
+	controllable on/off switches. A byte is "on" if all bits are set, and
+	the ops switch is "on" if at least one of its bytes is "on".
+
+	Only bits that are present (i.e., which were "1" in a mask sent to
+	/power/on/ops-set) are considered. If no bits are present, the ops
+	switch is "on".
+
+	If the ops switch is enabled and "off", it overrides the master
+	switch.
+
+	Writer:	coord
+	Reader:	browser
+	Qos:	1 (at least once)
+	Retain:	yes
+
+/power/on/ops-set
+	Writing to ops-set changes the settings of the ops switch.
+
+	The message contains two 32-bit integers, either decimal or hexadecimal
+	with leading 0x. The integers are separared by a space.
+
+	The first integer is a new ops value and the second integer is a mask
+	defining which channels are to be set. Only bits that have a "1" in the
+	mask are updated. All the channels in the mask are marked as "present".
+
+	Writer:	?
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	no
 
 
 /fan - Fan control and monitoring
@@ -1414,7 +1458,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	(Unexpanded) URI of the destination mined is operating on. This can be
 	used to see which destination from the configuration has been selected.
 
-	Write:	mined
+	Writer:	mined
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1422,7 +1466,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 /mine/dest-actual
 	Line /mine/dest, but after expanding variables.
 
-	Write:	mined
+	Writer:	mined
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1436,7 +1480,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	The value is retained and the retained value is used by mined if
 	started without an explicit destination.
 
-	Write:	browser (R&D)
+	Writer:	browser (R&D)
 	Reader:	mined
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1449,7 +1493,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Time at which the respective daemon was started, 0 if it has stopped.
 	This is a decimal integer representing the Unix time.
 
-	Write:	kunai
+	Writer:	kunai
 	Reader:	browser, kunai-time
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1457,7 +1501,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 /daemon/NAME/log
 	Live feed of the output (stdout and stderr) of the respective daemon.
 
-	Write:	kunai
+	Writer:	kunai
 	Reader:	browser, kunai-log
 	QoS:	2 (exactly once)
 	Retain:	no
@@ -1466,7 +1510,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	The output of the current run of the respective daemon. To publish
 	the current output, write anything to .../current-get (see below).
 
-	Write:	kunai
+	Writer:	kunai
 	Reader:	browser, kunai-log
 	QoS:	2 (exactly once)
 	Retain:	no
@@ -1476,7 +1520,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	of the daemon on ../current. If no such daemon exists, the request is
 	ignored.
 
-	Write:	browser, kunai-log
+	Writer:	browser, kunai-log
 	Reader:	kunai
 	QoS:	1 (at least once)
 	Retain:	no
@@ -1485,7 +1529,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Write anything to start the respective daemon. If no such daemon
 	exists or if it is already running, the request is ignored.
 
-	Write:	browser, kunai-start
+	Writer:	browser, kunai-start
 	Reader:	kunai
 	QoS:	1 (at least once)
 	Retain:	no
@@ -1494,7 +1538,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Write anything to stop the respective daemon. If no such daemon
 	exists or if it is already running, the request is ignored.
 
-	Write:	browser, kunai-stop
+	Writer:	browser, kunai-stop
 	Reader:	kunai
 	QoS:	1 (at least once)
 	Retain:	no
@@ -1504,7 +1548,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	stopped, cycling restarts it. If it is already running, cycling first
 	stops, then restarts it.
 
-	Write:	browser, kunai-cycle
+	Writer:	browser, kunai-cycle
 	Reader:	kunai
 	QoS:	1 (at least once)
 	Retain:	no
@@ -1674,6 +1718,9 @@ Access to all the topics, except for /account/user/USER/chpw and
 	- ecbclk: check the propagation of the ECB bus clock on all available
 	  buses.
 
+	- ecb-bits: detailed bit pattern test on an ECB bus. The argument is
+	  the bus number, 0 to 3.
+
 	- dmesg: the last kernel messages
 
 	- i2cdetect: scan the I2C bus whose number (0, 2, 3, 4, or 5) is given
@@ -1698,7 +1745,13 @@ Access to all the topics, except for /account/user/USER/chpw and
 	  is one optional argument, the slot number. If the argument is absent,
 	  the configuration EEPROM of the controller is used.
 
-	Write:	browser
+	- mbist: run a memory test on the specified slot. The argument is the
+	  slot number, 0 or 1.
+
+	  This test reports its progress on /diag/result/mbist and publishes
+	  the complete result on /diag/mbist/SLOT/test at the end of the run.
+
+	Writer:	browser
 	Reader:	diagd
 	QoS:	2 (exactly once)
 	Retain:	no
@@ -1718,12 +1771,54 @@ Access to all the topics, except for /account/user/USER/chpw and
 
 	- empty: no result is available yet
 
-	- * (a single charachter, no newline): a diagnostic has been
+	- * (a single character, no newline): a diagnostic has been
 	  requested and is being generated.
 
 	- anything else: the results of the diagnostic.
 
-	Write:	diagd
+	Writer:	diagd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/diag/result/mbist
+	Progressive results from MBIST. The first message contains a single
+	asterisk, the last message is "(Done)". After MBIST is complete, the
+	results are also sent to /diag/mbist/SLOT/test.
+
+	Note that this message is not retained.
+
+	Writer:	diagd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	no
+
+/diag/mbist/0/current
+/diag/mbist/1/current
+	MBIST data currently used for memory remapping on the board in the
+	respective slot. The value is a space-separated list of defect
+	locations. Each location consists of a list of dash-separated numbers:
+
+	- die number
+
+	- X and Y coordinates of the NoC node
+
+	- memory block, row, and column
+
+	If the location begins with the letter "U", the defect cannot be
+	corrected by remapping.
+
+	Writer:	mined start script
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/diag/mbist/0/test
+/diag/mbist/1/test
+	Like /diag/mbist/SLOT/current, but sent if the miner has stored the
+	results of an MBIST run.
+
+	Writer:	diagd
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1741,7 +1836,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	the timestamp will be the number of seconds since the system has
 	booted.
 
-	Write:	reportd
+	Writer:	reportd
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1750,7 +1845,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	This is a space-separated list of report indices. If the list is
 	empty, a dash (-) is sent.
 
-	Write:	reportd
+	Writer:	reportd
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1762,7 +1857,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	The purpose of /report/latest is to make it easier to determine whether
 	there are reports.
 
-	Write:	reportd
+	Writer:	reportd
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1776,7 +1871,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	If no report was lost due to the list overflowing, or a report has been
 	deleted since the last overflow, /report/overflow is 0.
 
-	Write:	reportd, browser
+	Writer:	reportd, browser
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1786,7 +1881,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	the report on /report/get. If no report with this index exists, the
 	request is ignored.
 
-	Write:	browser
+	Writer:	browser
 	Reader:	reportd
 	QoS:	2 (exactly once)
 	Retain:	no
@@ -1795,7 +1890,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	To delete a report, write its index to /report/delete. If no report
 	with this index exists, the request is ignored.
 
-	Write:	browser
+	Writer:	browser
 	Reader:	reportd
 	QoS:	1 (at least once)
 	Retain:	no
@@ -1805,7 +1900,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	binary ZIP file is then sent with the corresponding /report/INDEX/zip
 	topic.
 
-	Write:	reportd
+	Writer:	reportd
 	Reader:	browser
 	QoS:	2 (exactly once)
 	Retain:	no
@@ -1814,7 +1909,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Request generation of a new report, with the content of the message
 	used for the report's topic.
 	
-	Write:	TBD
+	Writer:	TBD
 	Reader:	reportd
 	QoS:	2 (exactly once)
 	Retain:	no
