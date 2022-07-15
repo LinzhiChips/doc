@@ -15,6 +15,7 @@ Controller
 	DARK_TIMEOUT		Reboot
 	SECURE			Reboot
 	SWITCHES_ON_BOOT	Reboot
+	SWITCH_OPS		None
 	TRIP_MASTER		None
 	POWER_POLL_INTERVAL	Reboot
 	FAN_PROFILE		Reboot
