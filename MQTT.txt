@@ -1,7 +1,7 @@
 MQTT topics
 ===========
 
-Copyright (C) 2021 Linzhi Ltd.
+Copyright (C) 2021, 2022 Linzhi Ltd.
 
 This document is licensed under the Creative Commons Attribution 4.0
 International (CC BY 4.0) license.
@@ -271,6 +271,26 @@ or in the file cc-by-legalcode.txt
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/sys/ether/up
+	Each time the Ethernet link transitions between up and down, a message
+	is sent on /sys/ether/up. The message content is 0 if the link went
+	down, 1 if it came up.
+
+	Writer:	card-troubled
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	no
+
+/sys/ether/bounce
+	If the Ethernet link is frequently changing between up and down state,
+	1. Otherwise, 0. /sys/ether/bounce auto-clears after the link has been
+	stable for a while.
+
+	Writer:	coord
+	Reader:	crewd
+	QoS:	1 (at least once)
+	Retain:	yes
+
 /sys/boot/problem
 	Contains messages if boot problems where detected, empty if there
 	were no problems.
@@ -514,10 +534,10 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	defining which channels are to be set. Only bits that have a "1" in the
 	mask are updated. All the channels in the mask are marked as "present".
 
-	Writer:	?
+	Writer:	opsd or similar (on controller)
 	Reader:	coord
 	QoS:	1 (at least once)
-	Retain:	no
+	Retain:	can be yes or no
 
 
 /fan - Fan control and monitoring
@@ -1638,6 +1658,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 		  0x0080	Boot problem
 		  0x0100	Temperature sensing fault
 		  0x0200	One or more (soft) power switches are "off"
+		  0x0400	Ethernet link bounce
 		  0x4000	Highlighted
 		  0x8000	USER button is pressed (for development)
 	F0	PWM setting (in percent) for Left or rear fan.
@@ -1751,6 +1772,10 @@ Access to all the topics, except for /account/user/USER/chpw and
 	  This test reports its progress on /diag/result/mbist and publishes
 	  the complete result on /diag/mbist/SLOT/test at the end of the run.
 
+	- mbist-update: Replace the cached MBIST data of the specified board
+	  with the data from the last MBIST run. The argument is the slot
+	  number, 0 or 1.
+
 	Writer:	browser
 	Reader:	diagd
 	QoS:	2 (exactly once)
@@ -1767,6 +1792,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 /diag/result/symrate
 /diag/result/dabs
 /diag/result/cfgdb-u
+/diag/result/mbist-update
 	Results from diagnostics. There can be the following values:
 
 	- empty: no result is available yet
