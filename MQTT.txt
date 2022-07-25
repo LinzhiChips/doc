@@ -1461,10 +1461,11 @@ Access to all the topics, except for /account/user/USER/chpw and
 	daemon uses slot 0, 1 if it only uses slot 1.
 
 	This is a space-separated list of decimal numbers. There are currently
-	two numbers:
+	three numbers:
 
-	- the second is the RTT estimate from TCP,
-	- the third is the total number of TCP retransmissions.
+	- the round-trip time between result submission and result message,
+	- the RTT estimate from TCP, and
+	- the total number of TCP retransmissions.
 
 	Both RTTs are in milliseconds and are the instantaneous values taken
 	at the time the result message was received.
