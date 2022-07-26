@@ -774,10 +774,11 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	QoS:	1 (at least once)
 	Retain:	no
 
-/temp/limit
-	Temperature limit at which an automatic shutdown is initiated.
-	Changing this value has no effect - the limit is set by "nomelt"
-	and cannot be changed at run time.
+/temp/0/shut
+/temp/1/shut
+	Temperature limit at which an automatic shutdown is initiated. This
+	value can be changed through the TSHUT configuration variable of the
+	respective board.
 
 	Writer:	nomelt
 	Reader:	browser
