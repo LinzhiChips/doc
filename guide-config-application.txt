@@ -54,6 +54,7 @@ Slot N
 	BANNER			Reboot
 	IGNORE			Reboot
 	TWARN			Reboot
+	TSHUT			Reboot
     Tuning
 	SERDES_RATE		Restart mined
 	GEN_RATIO		Restart mined
