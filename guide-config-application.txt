@@ -46,6 +46,7 @@ Controller
     Mining
 	NONCE_OFFSET		Restart mined
 	SUB_EXTRANONCE		Restart mined
+	DYNAMIC_MEMORY		Restart mined
 	SEPARATE_MINED		Reboot
 	RESERVED_SPACE		Restart dagd
 Slot N
