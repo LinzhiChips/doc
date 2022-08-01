@@ -1,0 +1,229 @@
+Technical guide: operations-defined on/off control
+==================================================
+
+The master on/off switch (in Power > On/Off) can be used for manual power
+control and is also used to disable potentially faulty miners if TRIP_MASTER
+(in Configuration > Controller > General) is set.
+
+A farm may also want to turn miners on or off based on other criteria, e.g.,
+to limit temperature or power consumption, or to limit operating hours.
+
+While all this could be done with the master switch, having many entities
+control a single switch would create a risk of conflicting settings.
+
+The operations-defined on/off control allows power to be controlled through up
+to 32 independent channels.
+
+
+System structure
+----------------
+
+Operations-defined on/off control affects the master switch: if ops-defined
+control is set to "off", it disables the master switch and turns power off for
+both slots. If ops-defined control is "on", power is controlled with the master
+and slot switches.
+
+The following diagram shows how the power switches are connected:
+
+Power in _____/ _____/ __________/ _____ to slot 0
+            Master  Ops    |   Slot 0
+                           |
+                           |_____/ _____ to slot 1
+                               Slot 1
+
+The ops switch is controlled through MQTT messages sent by site-specific
+devices we call "controllers". For example, a controller may monitor the
+ventilation system and tell (some) miners to power down if it detects a
+failure.
+
+In the miner, the ops switch is operated by "coord", the coordination and
+monitoring daemon.
+
+
+Channel structure
+-----------------
+
+Each channel can be "on", "off", or absent. Channels are organized in four
+groups of eight channels each. A group is "on" if it has at least one present
+channel, and all the present channels in the group are "on". The ops switch is
+"on" if at least one group is "on".
+
+The ops switch is also "on" if no channels are present, e.g., if a miner has
+not received (yet) any messages from controllers.
+
+The "on" and "off" values of all channels are encoded in a 32-bit word, with
+bit 0 (value 1) corresponding to channel 0, and so on. Likewise, the present
+channels are encoded as a 32-bit mask, with bit value 1 indicating that the
+respective channel is present.
+
+Controllers send messages with values and masks for the channel(s) each of them
+controls. This information is then combined by coord, and the combined
+information is published via MQTT. Coord also calculates the state of the ops
+switch and powers boards up or down accordingly.
+
+Example:
+
+1) Coord starts, with no present channels.
+2) Controller A sends value 1, mask 1. (Channel 0 is present and "on".)
+3) Coord calculates value 1, present mask 1. The ops switch remains "on".
+4) Controller B sends value 0, mask 2. (Channel 1 is present and "off".)
+5) Coord calculates value 1, present mask 3. The ops switch is turned "off".
+
+
+MQTT integration
+----------------
+
+The miners publishes the ops value, present mask, and enabled/disabled state on
+the topic /power/on/ops. For example, the message
+
+0xf 0xf 1
+
+means that channels 0 to 3 are present and all "on". Furthermore, the ops
+switch is enabled.
+
+To change channels, send a new value and a mask defining which bits to use to
+/power/op/ops-set. This message must be sent to each miner individually.
+Example:
+
+1 3
+
+indicates that the sender uses channel 0 and 1, and it sets channel 0 to "on",
+channel 1 to "off". If applied to the previous example, the ops value would
+change from 0xf to 0xd, and the present mask would remain at 0xf.
+
+The ops switch can also be controlled through the UI, on Power > On/Off, after
+enabling "Allow changing of ops switch bits".
+
+
+Combining channels
+------------------
+
+In the examples below we show values and masks controllers can use for
+different types of combinations. The values are the "on" values. For "off", the
+value is 0 in all cases.
+
+Example: controllers A and B must both allow the miner to power up.
+
+	Value	Mask
+A	1	1
+B	2	2
+
+Controller A uses channel 0, controller B uses channel 1. They are in the same
+group, and therefore AND-ed.
+
+Example: the miner powers up if at least one of controllers A and B lets it.
+
+	Value	Mask
+A	1	1
+B	0x100	0x100
+
+Controller A uses channel 0. Controlled B uses channel 8, which are in the 2nd
+group, and therefore OR-ed.
+
+Example: the miner can power up if at least two out of three controller (A, B,
+C) let it.
+
+	Value		Mask
+A	0x000101	0x000101
+B	0x010002	0x010002
+C	0x020200	0x020200
+
+Group 1: ------BA
+Group 2: ------CA
+Group 3: ------CB
+
+This implements the boolean expression (A & B) | (A & C) | (B & C).
+Note that, to implement this logic, each controller sends only on bit of
+information ("on" or "off"), but uses two channels for it.
+
+
+Disabling the ops switch
+------------------------
+
+If local control of power is desired, e.g. for testing, the ops switch can be
+disabled.
+
+To disable the ops switch, set
+Configuration > Controller > General > SWITCH_OPS to "Ops switch is ignored".
+
+The change is applied immediately. The default setting is "Ops switch can turn
+off power".
+
+
+Setting up controllers
+----------------------
+
+Each controller needs to have a list with the addresses of miners it controls,
+and it must be able to reach them via MQTT.
+
+This list of miners may be the same for all controllers, or they could use
+different lists. E.g., assuming a site with multiple machine rooms, one
+controller may turn off all miners if there is a fire alarm, but each room may
+have a separate controllers for temperature monitoring. And a controller
+limiting power may control the number of active miners by switching them on or
+off individually.
+
+Each controller should be assigned its own set of channels. Combining the
+inputs from the devices can then be left to the miners.
+
+Controllers should update their channels not only when there is a change, but
+they should also send periodic refreshes in case a miner has been restarted.
+(They can also accomplish this by keeping track of which miners they were
+unable to communicate with, and update them when they reappear.)
+
+The update interval should be chosen such that a booting miner will have up to
+date ops switch settings by the time it may begin mining. A refresh every ten
+minutes should be sufficiently frequent.
+
+
+Opsd
+----
+
+Opsd (opsd.py, from https://github.com/LinzhiChips/farm-tools) is a small
+program that can help with connecting processes generating on and off events
+(on controllers) with miners. It runs as a daemon, typically on the controller,
+and communicates via MQTT:
+
+            Controller(s)             Network         Miner(s)
+                                         |
+ops-app ---> MQTT broker ---> opsd.py ---|---> MQTT broker ---> coord
+                                         |
+
+
+ops-app is an application that sends on/off decisions to opsd. There can be
+more than one such application on a controller. There is only one opsd per
+controller.
+
+Opsd is invoked with a list of switches and miner names (or files containing
+miner names) as arguments. A switch is an MQTT topic name, an at sign (@), and
+the bitmask that switch controls. Example:
+
+opsd.py /foo@4 miner ...
+
+Applications on the controller can then send either a one or a zero to topic
+/foo, and opds.py will send the corresponding ops value and mask to the miners.
+
+By default, a switch is only added to the mask sent by opsd after anything has
+been received on the corresponding topic. I.e., the switch will be "on" by
+default. The default can be changed to "off" by prefixing the switch value with
+a minus sign. E.g.,
+
+opsd.py /foo@-4 miner ...
+
+will tell miners that channel 2 (value 4) is off until the application tells
+opsd to turn it on.
+
+Opsd reconnects to miners if the connection is lost. It also refreshes the
+/power/on/ops-set message periodically, in case it was missed for some reason.
+The default refresh interval is 600 seconds and can be changed with the -r or
+--refresh option. For example, this reduces the interval to one minute:
+
+opsd.py -r 60 ...
+
+By default, opsd sets the retain flag on messages sent to /power/on/ops-set,
+to avoid a race condition between coord and opsd when a miner boots. Retaining
+can be disabled with the -n option.
+
+Note: opsd runs into scalability limitations at about 300 connections/miners.
+If this is an issue, the list of miners can be split into smaller parts, with a
+separate opsd running for each part.
