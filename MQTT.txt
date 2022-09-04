@@ -227,7 +227,7 @@ or in the file cc-by-legalcode.txt
 	distinguish the two cases.
 
 	Writer:	liblzi2c
-	Reader:	TBD
+	Reader:	i2c-troubled, browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
@@ -311,7 +311,7 @@ or in the file cc-by-legalcode.txt
 	The banner is intended for "labeling" machines, e.g., if they have a
 	special role or condition.
 
-	Writer:	boot process
+	Writer:	coord
 	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
@@ -1358,7 +1358,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	- "invalid": the performance monitor received invalid data.
 
 	Writer:	mined
-	Reader:	crewd, countd
+	Reader:	crewd, statsd
 	QoS:	2 (exactly once)
 	Retain:	no
 
@@ -1375,7 +1375,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	I	Performance monitor received invalid data
 	U	Other/unknown reason
 
-	Writer:	countd
+	Writer:	statsd
 	Reader:	browser
 	QoS:	0 (best effort)
 	Retain:	yes
@@ -1392,7 +1392,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	- "mined": restart mined
 
 	Writer:	mined, launch-mined
-	Reader:	countd
+	Reader:	statsd
 	QoS:	2 (exactly once)
 	Retain:	no
 
@@ -1409,7 +1409,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	M	mined restart
 	U	Other/unknown reason
 
-	Writer:	countd
+	Writer:	statsd
 	Reader:	browser
 	QoS:	0 (best effort)
 	Retain:	yes
@@ -1782,6 +1782,17 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Reader:	diagd
 	QoS:	2 (exactly once)
 	Retain:	no
+
+/diag/running
+	Name of the diagnostic command (myip, grate, etc.) that is currently
+	running on the miner. While a command is running, no new commands
+	should be sent. If no command is running or the current command has
+	finished, a dash (-) is sent.
+	
+	Writer:	diagd
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
 
 /diag/result/myip
 /diag/result/mtr
