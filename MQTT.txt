@@ -1330,7 +1330,31 @@ Access to all the topics, except for /account/user/USER/chpw and
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/mine/running
+/mine/0/running
+/mine/1/running
+	/mine/running replaces /mine/reset after firmware fw-rd-20220904-1754.
+
+	A mining daemon that controls both board uses /mine/running, while a
+	a mining daemon controlling only one board uses /mine/0/running or
+	/mine/1/running, respectively.
+
+	When a mining daemon starts, it sends "1" on its "running" topic.
+
+	When a mining daemon exits, it sends "0" as "last will" message on its
+	"running" topic. When the last will messages is received, all
+	instantaneous mining information received for the indicated board(s)
+	is no longer valid and should be reset.
+
+	Writer:	mined
+	Reader:	browser
+	QoS:	1 (at least once)
+	Retain:	yes
+
 /mine/reset
+	/mine/reset was replaced with the /mine/running topics after firmware
+	fw-rd-20220904-1754
+
 	If anything is received on this topic, the mining daemon has exited.
 	(This is the "last will" message of mined.)
 
