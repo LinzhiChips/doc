@@ -18,7 +18,7 @@ Controller
 	SWITCH_OPS		-
 	TRIP_MASTER		-
 	POWER_POLL_INTERVAL	Reboot
-	FAN_PROFILE		Reboot
+	FAN_PROFILE		-
 	KEEP_FSCK		Reboot
     Network
 	DHCP			Reboot
