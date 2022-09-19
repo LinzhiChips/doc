@@ -610,10 +610,12 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	QoS:	1 (at least once)
 	Retain:	no
 
-/fan/profile (experimental)
-	Fan speed regulation profile. This is a space-separated list of
-	temperature:duty-cycle pairs. Temperatures are in degree celsius,
-	duty cycles are in percent. All numbers are integers.
+/fan/profile
+	The fan regulation profile.
+
+	This is a space-separated list of temperature:duty-cycle pairs.
+	Temperatures are in degree Celsius, duty cycles are in percent. All
+	numbers are integers.
 
 	The first entry specifies the minimum duty cycle and also applies to
 	all lower temperatures. The last entry specifies the temperature at
@@ -623,12 +625,30 @@ on LD001. For LD002, readouts can only be requested through /power/dump
 	Temperatures must increase strictly monotonously. Duty cycle values
 	must increase monotonously. Incorrect entries are ignored.
 
+	Note: in firmware fw-rd-20220904-1754.tar and older, the fan profile
+	obtained from configuration was published on /fan/profile, and writing
+	to /fan/profile changed the active profile. In newer versions,
+	/fan/profile reports the current profile.
+
 	Default: 0:100
 
-	Writer:	boot process, browser
-	Reader:	coord
+	Writer:	coord
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
+
+/fan/profile-set
+	New in firmware after fw-rd-20220904-1754.tar: set the fan profile.
+	The syntax is the same as for /fan/profile.
+
+	/fan/profile-set overrides any profiles set by configuration (until the
+	miner reboots). Writing "-" to /fan/profile-set falls back to the
+	configured profiles (100% if there are none).
+
+	Writer:	?
+	Reader:	coord
+	QoS:	1 (at least once)
+	Retain:	no
 
 /fan/pwm-snapshot
 	The PWM values reported before a thermal shutdown occurred. The this is
