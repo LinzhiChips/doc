@@ -1530,7 +1530,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	yes
 
 /mine/dest-actual
-	Line /mine/dest, but after expanding variables.
+	Like /mine/dest, but after expanding variables.
 
 	Writer:	mined
 	Reader:	browser
@@ -1550,7 +1550,6 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Reader:	mined
 	QoS:	1 (at least once)
 	Retain:	yes
-
 
 /daemon - Daemon control
 ------------------------
