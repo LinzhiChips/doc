@@ -1551,6 +1551,17 @@ Access to all the topics, except for /account/user/USER/chpw and
 	QoS:	1 (at least once)
 	Retain:	yes
 
+/mine/alt-dag-ready (experimental)
+	The launch process of the DAG daemon sends a "0" on this topic when it
+	begins generating or verifying the alternative DAG. It sends a "1" when
+	generation/verification is complete.
+
+	Writer:	launch-dagd
+	Reader:	launch-mined
+	QoS:	1 (at least once)
+	Retain:	yes
+
+
 /daemon - Daemon control
 ------------------------
 
