@@ -1463,7 +1463,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 
 /mine/quality
 	Mining quality estimate. We define the quality of a result as the
-	number of zero bits at its beginning. /mine/quality if a list of the
+	number of zero bits at its beginning. /mine/quality is a list of the
 	following space-separated fields:
 
 	- seconds since the board started mining (see /mine/statistics)
@@ -1490,11 +1490,15 @@ Access to all the topics, except for /account/user/USER/chpw and
 	Retain:	yes
 
 /mine/results
-	Mining results. This is the block's header hash, the nonce, and the
-	result. The header hash and the result consist of 64 hex digits each.
-	hex digits. The nonce is a hexadecimal number beginning with 0x, and
-	may or may not have leading zeroes. The three values are separated by
-	spaces.
+	Mining results. This is a space-separated list of:
+
+	- the block's header hash,
+	- the nonce, and
+	- the result.
+
+	The header hash and the result consist of 64 hex digits each. The nonce
+	is a hexadecimal number beginning with 0x, and may or may not have
+	leading zeroes.
 
 	The reporting threshold can be set through /mine/result-threshold
 
