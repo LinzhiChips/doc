@@ -1153,8 +1153,11 @@ Access to all the topics, except for /account/user/USER/chpw and
 	---	-----------------------------------------------------------
 	F	SerDes firmware upload progress, a floating-point number
 		from 0 to 1.
-	D	DAG upload progress, also from 0 to 1.
+	D	(Main) DAG upload progress, also from 0 to 1.
+	A	Alternative DAG upload progrsss, from 0 to 1.
 	M	Mining indication, 0 if the board is not mining, 1 if it is.
+
+	The alternative DAG progress is only present if dual-mining.
 
 	Writer:	mined
 	Reader:	browser
@@ -1554,10 +1557,29 @@ Access to all the topics, except for /account/user/USER/chpw and
 /mine/alt-dag-ready (experimental)
 	The launch process of the DAG daemon sends a "0" on this topic when it
 	begins generating or verifying the alternative DAG. It sends a "1" when
-	generation/verification is complete.
+	generation/verification is complete. If not dual-mining, the launch
+	process sends "-".
 
 	Writer:	launch-dagd
 	Reader:	launch-mined
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/mine/dual-state (experimental)
+	Dual-mining state. This topic is only present if dual-mining. Its value
+	consists of two space-separated decimal integers. The first integer is
+	the number of milliseconds since the system has booted.
+
+	The second integer indicates the dual-mining state:
+
+	0  Mining objective is not known
+	1  Preparing to mine using the main DAG
+	2  Mining using the main DAG
+	3  Preparing to mine using the alternative DAG
+	4  Mining using the alternative DAG
+
+	Writer:	mined
+	Reader:	browser
 	QoS:	1 (at least once)
 	Retain:	yes
 
