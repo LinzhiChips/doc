@@ -109,7 +109,7 @@ or in the file cc-by-legalcode.txt
 	Retain:	yes
 
 /sys/button/user
-	USER button status. 0 if the button is not being pressed, 1 if is.
+	USER button status. 0 if the button is not being pressed, 1 if it is.
 
 	Writer:	buttond
 	Reader:	browser
@@ -1719,8 +1719,8 @@ Access to all the topics, except for /account/user/USER/chpw and
 	B0	Number of bad channels on the board in slot 0. (255 for >= 255
 		bad channels.)
 	B1	Likewise, for board 1.
-	CV	Checksum files version. 0 if miner did not report this, -1 if
-		the miner does not know the checksum files version.
+	CV	Checksum files version. 0 if the miner did not report this, -1
+		if the miner does not know the checksum files version.
 	D0	Number of active dies on the board in slot 0.
 	D1	Likewise, for board 1.
 	DR	Rig name in the current destination URI (up to eight
