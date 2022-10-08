@@ -46,9 +46,10 @@ Controller
     Mining
 	NONCE_OFFSET		Restart mined
 	SUB_EXTRANONCE		Restart mined
-	DYNAMIC_MEMORY		Restart mined
 	SEPARATE_MINED		Reboot
 	RESERVED_SPACE		Restart dagd
+	ZILLIQA_SUPPORT		Restart dagd and mined
+	DYNAMIC_MEMORY		Restart mined
 Slot N
     General
 	NAME			Reboot
