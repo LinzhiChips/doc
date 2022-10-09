@@ -14,12 +14,12 @@ Controller
 	BANNER			-
 	DARK_TIMEOUT		Reboot
 	SECURE			Reboot
-	SWITCHES_ON_BOOT	Reboot
+	SWITCHES_ON_BOOT	- (3)
 	SWITCH_OPS		-
 	TRIP_MASTER		-
 	POWER_POLL_INTERVAL	Reboot
 	FAN_PROFILE		-
-	KEEP_FSCK		Reboot
+	KEEP_FSCK		- (3)
     Network
 	DHCP			Reboot
 	DHCP_NAME		Reboot
@@ -83,3 +83,6 @@ restarting.
     daemon is pausing after a connection problem. This can be expedited by
     restarting the mining daemon(s) (mined, or mined0 and mined1,
     respectively).
+
+(3) The operation affected by this configuration variable can occur only at
+    boot time, making the (re)boot implicit.
