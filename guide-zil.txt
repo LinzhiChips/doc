@@ -1,0 +1,122 @@
+Dual-mining ETC+ZIL
+===================
+
+Firmware starting with version fw-test-20221012-0128 supports dual mining of
+ETC and Zilliqa (ZIL). In such a configuration, the miner mines ZIL during a
+one-minute window every hour, and it mines ETC for the rest of the time.
+
+Dual mining can be implemented either through miners connecting to two pools
+and switching among them, or through miners connecting to a single pool that
+switches between both coins, typically proxying one of the coins to another
+pool. We support the latter approach.
+
+
+Setting up ETC+ZIL mining
+-------------------------
+
+1. Install firmware with Zillqa (ZIL) mining support.
+
+2. Stop dagd and mined(s) in System > Daemons
+
+3. Set Configuration > Controller > Mining > ZILLIQA_SUPPORT to "Support
+   Zilliqa mining"
+
+4. Restart dagd and mined(s) in System > Daemons
+
+   In the user interface, a progress bar for only one DAG will appear. When
+   finished, the progress bar disappears and the cached ETC DAGs are shown.
+
+   Generating the ZIL DAG should take about 80 minutes. The DAG file is stored
+   in /data/dag/zil-ethash-0.dag
+   (This is simply an ETH/ETC epoch 0 DAG.)
+
+5. Optional: set up logging of mined output:
+
+   - If Configuration > Controller > Mining > SEPARATE_MINED is set to
+     "Single mined operates both boards":
+
+     mosquitto_sub -h your-miner -t /daemon/mined/log >file
+
+   - Else:
+
+     mosquitto_sub -v -h your-miner -t /daemon/mined0/log \
+       -t /daemon/mined1/log >file
+
+6. Configure a pool in Configuration > Pool
+
+   Templates for Crazypool (ETC) via Rustpool (ZIL and proxy) and Crazypool
+   via ShardPool are available under the ETC+ZIL tab of the wizard.
+
+   Example:
+
+   etc.stratum0://0xb54343d8ddddc1b8998e6bbc17d07c9ec9768fc4.3c47:zil1awhgz8c67dda8rtuz9df7jvaa4wvzgxl3xhv8t@us.crazypool.org:7000@us1-zil.shardpool.io:3333
+
+   The components:
+
+   - etc: the principal coin we're mining
+
+   - stratum0: the ZIL pool uses the EtherProxy protocol
+
+   - 0xb543...: the ETC wallet
+
+   - 3c47: the machine name
+
+   - zil1a...: the ZIL wallet
+
+   - us.crazypool.org:7000: the ETC pool (can be any ETC pool that speaks
+     EtherProxy)
+
+   - us1-zil.shardpool.io:3333: the ZIL pool, with proxy to the Ethash-type
+     pool
+
+7. In Configuration > Pool, deactivate any other destinations, hover right of
+   the checkbox of the ETC+ZIL entry, and click the red arrow.
+
+The miner will now switch to mining ZIL for about one minute roughly every
+hour, and mine ETC the rest of the time. While mining ZIL, the "Mining:"
+indication under the per-slot progress bars on the status page of the Web UI
+changes to "epoch ?  (?, ?)"
+
+A detailed timeline of dual-mining events and statistics can be found in
+System > Dual-mining.
+
+
+Disabling ETC+ZIL mining
+------------------------
+
+While it should normally be sufficient to just select a different pool
+destination to return to ETC-only mining, having support for ETC+ZIL active
+still
+
+- consumes about 1 GB on the uSD card,
+
+- the cached DAG for ZIL is checked each time the miner reboots, and
+
+- the ZIL DAG is loaded into the ASICs.
+
+ZIL support can be partially deactivated (the DAG is no longer checked or
+loaded, and mined operates normally) by setting
+Configuration > Controller > Mining > ZILLIQA_SUPPORT to 
+"Leave (room for) the DAG but don't recognize ZIL jobs"
+
+This keeps the DAG file, so that one can quickly return to mining ZIL.
+
+To also remove the cached DAG, set ZILLIQA_SUPPORT to "Do not support Zilliqa".
+
+
+Coin + ZIL pairings
+-------------------
+
+The ETC+ZIL pairing should be minable on Phoenixes until approximately
+2023-10 (according to the DAG growth projection of minerstats.)
+
+An alternative could be UBQ+ZIL (not tested), which should be minable for much
+longer. However, Ubiq's daily total mining rewards are only about USD 200
+(2022-09-29).
+
+EXP+ZIL might also be a possibility, but the daily total rewards are even
+smaller, and there are plans to change Expanse's PoW algorithm to something a
+Phoenix could not mine.
+
+Coins with too large a DAG for dual-mining with ZIL on a Phoenix include ETHW,
+ETHF, QKC, and CLO.
