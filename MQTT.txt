@@ -292,7 +292,7 @@ or in the file cc-by-legalcode.txt
 	Retain:	yes
 
 /sys/boot/problem
-	Contains messages if boot problems where detected, empty if there
+	Contains messages if boot problems were detected, empty if there
 	were no problems.
 
 	Writer:	boot process
@@ -981,6 +981,12 @@ Network status
 	string, the variable is deleted. AREA can only be user, user0,
 	or user1.
 
+	If the variable is an associative array, the value must be a
+	space-separated list of all the current (!) keys. The entire array is
+	then reordered accordingly.
+
+	See also /config/AREA/VAR/KEY/move
+
 	Writer:	browser
 	Reader:	configd
 	QoS:	1 (at least once)
@@ -1002,6 +1008,8 @@ Network status
 
 	This changes the value of /config/AREA/VAR.
 
+	See also /config/AREA/VAR/set
+
 	Writer:	browser
 	Reader:	configd
 	QoS:	2 (exactly once)
@@ -1016,6 +1024,73 @@ Network status
 	Reader:	configd
 	QoS:	1 (at least once)
 	Retain:	no
+
+/config/bulk (experimental)
+	The entire user configuration, encoded as JSON object where the
+	variable names are the keys. Variables from areas user0 and user1 have
+	their names prefixed with 0/ and 1/, respectively.
+
+	Writer:	configd
+	Reader:	lode
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/bulk-set (experimental)
+	A list of configuration changes, encoded as JSON object. The object
+	contains an object "change" which in turn contains a name, value pair
+	for each variable that should be changed. Variables that are to be
+	deleted have the value "null".
+
+	Variable names in areas user0 and user1 are prefixed with 0/ and 1/,
+	respectively.
+
+	If an optional pair "restart" with the value true is included, configd
+	will perform any restart actions needed after processing the changes.
+	See also /config/restart-perform
+
+	Writer:	lode
+	Reader:	configd
+	QoS:	1 (at least once)
+	Retain:	no
+
+/config/accept (experimental)
+	A newline-separated list of regular expressions that match settings
+	configd accepts. Each setting is in the form variable=value. For
+	associative arrays, the regular expression for members is given.
+
+	Per-slot variable names are prefixed with the regular expression [01]/
+
+	The regular expressions do not contain ^ or $
+
+	Writer:	configd
+	Reader:	lode
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/restart-pending (experimental)
+	A space-separated list of restart actions that will have to be
+	performed for the current configuration changes to become active. If no
+	actions are needed, a dash (-) is published.
+
+	Note that configd currently may not get these cases right:
+	- changes between synonymous settings,
+	- removal of a user setting overriding a factory setting,
+	- manual restarting of daemons.
+
+	Writer:	configd
+	Reader:	lode
+	QoS:	1 (at least once)
+	Retain:	yes
+
+/config/restart-perform (experimental)
+	Writing any value to this topic causes configd to perform any restart
+	actions needed for the current configuration changes to become active.
+
+	Writer:	?
+	Reader:	configd
+	QoS:	2 (exactly once)
+	Retain:	no
+
 
 
 /account - User account management
@@ -1742,6 +1817,7 @@ Access to all the topics, except for /account/user/USER/chpw and
 		  0x0200	One or more (soft) power switches are "off"
 		  0x0400	Ethernet link bounce
 		  0x0800	The ops switch is "off"
+		  0x1000	There is a pending configuration change
 		  0x4000	Highlighted
 		  0x8000	USER button is pressed (for development)
 	F0	PWM setting (in percent) for Left or rear fan.
