@@ -176,8 +176,57 @@ date ops switch settings by the time it may begin mining. A refresh every ten
 minutes should be sufficiently frequent.
 
 
-Opsd
-----
+Bonanza
+-------
+
+Bonanza (https://github.com/LinzhiChips/bonanza) can be used to distribute
+on/off messages from controllers to miners. The system looks as follows:
+
+Controller                  Server(s)                         Miner(s)
+           :                    :                |
+ops-app ---:---> MQTT broker ---:---> bonanza ---|---> MQTT broker ---> coord
+           :                    :                |
+    Network or local     Network or local     Network
+
+Dotted vertical lines separate entities that can either be connected via the
+network or that run on the same machine.
+
+ops-app is an application that sends on/off decisions to bonanza. There can be
+more than one such application on a controller and there can be any number of
+controllers. All controllers send on/off commands to an MQTT broker to which
+the bonanza daemon subscribes. Bonanza then calculates the values for value and
+mask, and sends them to the miners.
+
+Controller, the MQTT broker that propagates on/off decisions, and the bonanza
+daemon may all run on the same machine, but they can also be on different
+machines. Note that bonanza subscribes to only one MQTT broker for on/off
+messages.
+
+To configure a channel, use the construct shown in the following example:
+
+name == "miner":
+	switch["/foo"] = 4
+
+Here, the topic the on/off decision is sent on is "/foo". The channel pattern
+is 4, i.e., channel 2. The first line is a condition that tells bonanza which
+miner(s) should be turned on/off when /foo changes.
+
+The on/off decision from a controller is an MQTT message sent on the respective
+topic, with payload "0" to turn the channel(s) off, and "1" to turn them on.
+The default state is "on". In order to avoid "glitches" when servers restart,
+the retain flag should be set on on/off messages, and QoS should be 1 or 2.
+
+Example:
+
+mosquitto_pub -h server -t /foo -m 0 -q 1 -r	# on
+mosquitto_pub -h server -t /foo -m 0 -q 0 -r	# off
+
+
+Opsd (obsolete)
+---------------
+
+Note: opsd is obsolete. Bonanza (see above) is easier to use and scales much
+better.
 
 Opsd (opsd.py, from https://github.com/LinzhiChips/farm-tools) is a small
 program that can help with connecting processes generating on and off events
