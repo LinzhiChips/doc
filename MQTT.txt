@@ -1790,10 +1790,10 @@ Access to all the topics, except for /account/user/USER/chpw and
 		MH/s.
 	A1	Likewise, for board 1.
 	B	Seconds since data collection has started.
-	CN	Coin name.
 	B0	Number of bad channels on the board in slot 0. (255 for >= 255
 		bad channels.)
 	B1	Likewise, for board 1.
+	CN	Coin name.
 	CV	Checksum files version. 0 if the miner did not report this, -1
 		if the miner does not know the checksum files version.
 	D0	Number of active dies on the board in slot 0.
@@ -1863,6 +1863,10 @@ Access to all the topics, except for /account/user/USER/chpw and
 	T2	Front #1 fan.
 	T3	Front #2 fan.
 	UT	Uptime, in seconds.
+	X0	Number of disabled/bad temperature channels, slot 0. Bit 7 is
+		set if there is any chip of which the channels of both dies are
+		bad.
+	X1	Likewise, for slot 1.
 
 	Writer:	crewd
 	Reader:	browser
